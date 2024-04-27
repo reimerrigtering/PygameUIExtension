@@ -154,7 +154,7 @@ class Rect(Shape):
         Placement.BOTTOM_LEFT: 'border_bottom_left_radius',
         Placement.BOTTOM_RIGHT: 'border_bottom_right_radius'
     }
-    _rect: ClassVar[None] | pygame.Rect = field(default=None, kw_only=True)
+    _rect: pygame.Rect = field(default=None, kw_only=True)
     x: int = 0
     y: int = 0
     width: int = 0
@@ -201,7 +201,7 @@ class Circle(Shape):
     }
     corner_base_dict: ClassVar[dict[int, bool]] = {Placement.TOP_LEFT: True, Placement.TOP_RIGHT: True,
                                                    Placement.BOTTOM_LEFT: True, Placement.BOTTOM_RIGHT: True}
-    _circle: ClassVar[None] | Sequence[int, int, int] = field(default=None, kw_only=True)
+    _circle: Sequence[int, int, int] = field(default=None, kw_only=True)
     x: int = 0
     y: int = 0
     _radius: int = 0
@@ -320,7 +320,7 @@ class Polygon(Shape):
 
 @dataclass
 class Ellipse(Shape):
-    _ellipse: ClassVar[None] | pygame.Rect = field(default=None, kw_only=True)
+    _ellipse: pygame.Rect = field(default=None, kw_only=True)
     x: int = 0
     y: int = 0
     width: int = 0
@@ -351,7 +351,7 @@ class Ellipse(Shape):
 
 @dataclass
 class Text:
-    _text: ClassVar[None] | str = field(default=None, kw_only=True)
+    _text: str = field(default=None, kw_only=True)
 
     text: str = ''
     x: int = 0
@@ -479,7 +479,7 @@ class Text:
 @dataclass
 class InputField:
     active_input: ClassVar[None] = None
-    rect_not_active_color: ClassVar[None] | T_COLOR = field(default=None, kw_only=True)
+    rect_not_active_color: T_COLOR = field(default=None, kw_only=True)
 
     input_rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
     rect_active_color: T_COLOR | None = None
@@ -652,9 +652,9 @@ class InputField:
 
 @dataclass
 class Image:
-    assests_folder_path: ClassVar[None] | str = field(default=None, kw_only=True)
-    image: ClassVar[None] | pygame.Surface = field(default=None, kw_only=True)
-    border_rect: ClassVar[None] | Rect = field(default=None, kw_only=True)
+    assests_folder_path: str = field(default=None, kw_only=True)
+    image: pygame.Surface = field(default=None, kw_only=True)
+    border_rect: Rect = field(default=None, kw_only=True)
 
     _path: str = ''
     x: int = 0
@@ -996,7 +996,7 @@ class Button:
 
     active_buttons: ClassVar[list] = []
 
-    _text: ClassVar[None] | Text = field(default=None, kw_only=True)
+    _text: Text = field(default=None, kw_only=True)
 
     rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
     pressed_color: T_COLOR | None = None
