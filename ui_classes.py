@@ -163,7 +163,7 @@ class Rect(Shape):
     corner_radius_specific: dict[int, int] | None = None
 
     def __post_init__(self) -> None:
-        self._rect: pygame.Rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self._rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     @property
     def rect(self) -> pygame.Rect:
@@ -201,14 +201,14 @@ class Circle(Shape):
     }
     corner_base_dict: ClassVar[dict[int, bool]] = {Placement.TOP_LEFT: True, Placement.TOP_RIGHT: True,
                                                    Placement.BOTTOM_LEFT: True, Placement.BOTTOM_RIGHT: True}
-    _circle: Sequence[int, int, int] = field(default=None, kw_only=True)
+    _circle: tuple[int, int, int] = field(default=None, kw_only=True)
     x: int = 0
     y: int = 0
     _radius: int = 0
     remove_corner_specific: dict[int, bool] | None = None
 
     def __post_init__(self):
-        self._circle: Sequence[int, int, int] = (self.x, self.y, self._radius)
+        self._circle = (self.x, self.y, self._radius)
 
     @property
     def circle(self) -> tuple[int, int, int]:
@@ -216,7 +216,7 @@ class Circle(Shape):
 
     @property
     def center(self) -> tuple[int, int]:
-        return tuple(self.circle[:2])
+        return self.circle[0], self.circle[1]
 
     @property
     def radius(self) -> int:
@@ -279,13 +279,12 @@ class Circle(Shape):
 
 @dataclass
 class Polygon(Shape):
-    polygon_points: MutableSequence[Sequence[int, int], Sequence[int, int], Sequence[int, int], ...] | None \
-        = None
+    polygon_points: MutableSequence[tuple[int, int]] | None = None
 
     def __post_init__(self) -> None:
         self.polygon_points = self.polygon_points if self.polygon_points is not None else [(0, 0), (0, 0), (0, 0)]
 
-    def insert_point(self, coordinate: Sequence[int, int], point_index: int = -1) -> None:
+    def insert_point(self, coordinate: tuple[int, int], point_index: int = -1) -> None:
         if not isinstance(self.polygon_points, MutableSequence):
             raise TypeError('Polygon point insertion only possible on MutableSequence')
         elif not isinstance(coordinate, Sequence):
@@ -294,7 +293,7 @@ class Polygon(Shape):
         if coordinate not in self.polygon_points:
             self.polygon_points.insert(point_index, coordinate)
 
-    def remove_point(self, coordinate: Sequence[int, int] = (0, 0)) -> int | None:
+    def remove_point(self, coordinate: tuple[int, int] = (0, 0)) -> int | None:
         if not isinstance(self.polygon_points, MutableSequence):
             raise TypeError('Polygon point removal only possible on MutableSequence')
         if not isinstance(coordinate, Sequence):
@@ -351,9 +350,9 @@ class Ellipse(Shape):
 
 @dataclass
 class Text:
-    _text: str = field(default=None, kw_only=True)
+    _text: str = field(default='', kw_only=True)
 
-    text: str = ''
+    text: str
     x: int = 0
     y: int = 0
     color: T_COLOR = (0, 0, 0)
@@ -367,7 +366,7 @@ class Text:
     resize_max_height: int | None = None
     margin: int = 20
     dynamic_multi_line: bool = False
-    multi_line_splitted: MutableSequence[str, ...] | None = None
+    multi_line_splitted: MutableSequence['Text'] | None = None
 
     multi_line_height_factor: ClassVar[int] = 0.75
     multi_line_spacing_factor: ClassVar[int] = 1.4
@@ -1001,7 +1000,7 @@ class Button:
     rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
     pressed_color: T_COLOR | None = None
 
-    text_raw: Text | None = None
+    text_obj: Text | None = None
     fit_text: bool = True
 
     img: Image | None = None
@@ -1012,7 +1011,7 @@ class Button:
     button_pressed: bool = False
     button_type: str = 'switch'
     target_scene_on_press: str | None = None
-    call_on_press: Callable | None = None
+    call_on_press: Callable or None = None
     call_on_press_kwargs: dict | None = None
 
     def __post_init__(self) -> None:
@@ -1126,8 +1125,8 @@ class Bar:
     save_bars: ClassVar[list] = []
 
     rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
-    value_range: Sequence[float, float] = (0.0, 100.0)
-    display_range: MutableSequence[float] | None = None
+    value_range: list[float, float] | None = None
+    display_range: list[float, float] | None = None
 
     bar_color: T_COLOR = (0, 0, 0)
     _text: Text | None = None
@@ -1148,9 +1147,8 @@ class Bar:
         if isinstance(self.rect, Sequence):
             self.rect = Rect(*self.rect[:4], color=self.rect[4])
 
-        if self.display_range is None:
-            self.display_range = list(self.value_range)
-            print(self.display_range)
+        self.value_range = [0.0, 100.0] if self.value_range is None else self.value_range
+        self.display_range = self.value_range if self.display_range is None else self.display_range
 
         if self.start_fill_side not in (Placement.LEFT, Placement.BOTTOM):
             self.start_fill_side = Placement.LEFT
@@ -1185,10 +1183,10 @@ class Bar:
         return self.display_range[1]
 
     @property
-    def target_range(self) -> list[list[float, float], bool]:
+    def target_range(self) -> tuple[list[float, float], bool]:
         if self._bar_id in Bar.moving_bars.keys():
-            return [Bar.moving_bars[self._bar_id][0], True]
-        return [self.display_range, False]
+            return Bar.moving_bars[self._bar_id][0], True
+        return self.display_range, False
 
     def set_value(self, value: float, set_instant: bool = False, set_bottom: bool = False) -> None:
         set_value = min(max(value, self.value_range[0]), self.value_range[1])
