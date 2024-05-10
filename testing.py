@@ -63,9 +63,9 @@ def move_block() -> None:
         moving_block_sequence_pos += 1
 
 
-move_block_button = Button(Rect(300, 560, 60, 40, color=(200, 200, 200)), text_raw=Text('Cycle'), button_type='push',
+move_block_button = Button(Rect(300, 560, 60, 40, color=(200, 200, 200)), _text=Text('Cycle'), button_type='push',
                            call_on_press=move_block)
-fill_block_button = Button(Rect(300, 610, 60, 40, color=(200, 200, 200)), text_raw=Text('Fill'), button_type='push',
+fill_block_button = Button(Rect(300, 610, 60, 40, color=(200, 200, 200)), _text=Text('Fill'), button_type='push',
                            call_on_press=moving_block_fill.start)
 
 
