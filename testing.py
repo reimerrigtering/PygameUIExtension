@@ -102,55 +102,57 @@ def main():
         Display.tick_frame()
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            match event.type:
+                case pygame.QUIT:
                     run = False
 
-                if event.key == pygame.K_1:
-                    circle.radius = max(circle.radius - 10, 30)
-                    bar.modify_value(-10)
+                case pygame.KEYDOWN:
+                    match event.key:
+                        case pygame.K_ESCAPE:
+                            run = False
 
-                elif event.key == pygame.K_2:
-                    circle.radius = min(circle.radius + 10, 130)
-                    bar.modify_value(10)
+                        case pygame.K_1:
+                            circle.radius = max(circle.radius - 10, 30)
+                            bar.modify_value(-10)
 
-                elif event.key == pygame.K_3:
-                    bar.modify_value(-10, set_bottom=True)
-                    print(f'{bar.display_range} -> {bar.target_range}')
+                        case pygame.K_2:
+                            circle.radius = min(circle.radius + 10, 130)
+                            bar.modify_value(10)
 
-                elif event.key == pygame.K_4:
-                    bar.modify_value(10, set_bottom=True)
-                    print(f'{bar.display_range} -> {bar.target_range}')
+                        case pygame.K_3:
+                            bar.modify_value(-10, set_bottom=True)
+                            print(f'{bar.display_range} -> {bar.target_range}')
 
-                # elif event.key == pygame.K_5:
+                        case pygame.K_4:
+                            bar.modify_value(10, set_bottom=True)
+                            print(f'{bar.display_range} -> {bar.target_range}')
 
-                # elif event.key == pygame.K_6:
+                        # case pygame.K_5:
 
-                elif event.key == pygame.K_7:
-                    polygon1.insert_point((100, 398), 1)
-                    polygon2.insert_point((80, 472), 4)
+                        # case pygame.K_6:
 
-                    ellipse2.width = max(ellipse2.width - 10, 100)
-                    ellipse1.height = max(ellipse1.height - 10, 100)
+                        case pygame.K_7:
+                            polygon1.insert_point((100, 398), 1)
+                            polygon2.insert_point((80, 472), 4)
 
-                elif event.key == pygame.K_8:
-                    polygon1.remove_point((100, 398))
-                    polygon2.remove_point((80, 472))
+                            ellipse2.width = max(ellipse2.width - 10, 100)
+                            ellipse1.height = max(ellipse1.height - 10, 100)
 
-                    ellipse2.width = min(ellipse2.width + 10, 300)
-                    ellipse1.height = min(ellipse1.height + 10, 300)
+                        case pygame.K_8:
+                            polygon1.remove_point((100, 398))
+                            polygon2.remove_point((80, 472))
 
-                # elif event.key == pygame.K_9:
+                            ellipse2.width = min(ellipse2.width + 10, 300)
+                            ellipse1.height = min(ellipse1.height + 10, 300)
 
-                elif event.key == pygame.K_i:
-                    print(f'block_pos: {moving_block.x}, {moving_block.y}')
+                        # case pygame.K_9:
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                move_block_button.check_collision()
-                fill_block_button.check_collision()
+                        case pygame.K_i:
+                            print(f'block_pos: {moving_block.x}, {moving_block.y}')
+
+                case pygame.MOUSEBUTTONDOWN:
+                    move_block_button.check_collision()
+                    fill_block_button.check_collision()
 
         update_window()
 
