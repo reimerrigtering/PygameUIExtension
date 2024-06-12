@@ -1,8 +1,9 @@
 Category: ObjectAnimation
 TODO: Missing attribute catch for objects
-TODO: Fix rounding issues after transform_factor multiplication results in float endpoint
-TODO: Fix index error at operations end
-TODO: Fix opposite direction operation conflict
+FIXME: Rounding issues after transform_factor multiplication results in float endpoint
+FIXME: Index error at operations end
+FIXME: Opposite direction operation conflict
+FIXME: MOVE_TO action broken time attribute handeling
 
 Category: Button
 FIXME: Text auto formatting alignments

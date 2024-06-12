@@ -755,7 +755,7 @@ class ObjectAnimation:
         CHANGE_OBJECT: int = 6
 
         @classmethod
-        def execute(cls, objects, index, action: int = None, **kwargs):
+        def execute(cls, objects, index, start_action_time, action: int = None, **kwargs):
             wait_time = 0
             object_index = None
             cur_object = objects[index]
@@ -764,8 +764,8 @@ class ObjectAnimation:
                 return wait_time, object_index
 
             if 'time' in kwargs.keys():
-                wait_time = kwargs['time']
-                transform_factor = 1 / wait_time
+                wait_time = start_action_time - Frame.get() + kwargs['time']
+                transform_factor = 1 / max(wait_time, 1)
             else:
                 transform_factor = 1
 
@@ -896,7 +896,8 @@ class ObjectAnimation:
             self.stop()
             return
         wait_time, object_index = ObjectAnimation.Action.execute(self.animation_objects, self.object_index,
-                                                                 current_action[0], **current_action[1])
+                                                                 self.start_action_frame, current_action[0],
+                                                                 **current_action[1])
 
         if object_index is not None:
             self.object_index = object_index

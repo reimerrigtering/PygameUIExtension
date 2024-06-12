@@ -44,8 +44,8 @@ moving_block_up = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': -40, 'tim
                                   animation_objects=[moving_block])
 moving_block_down = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': 40, 'time': 20})],
                                     animation_objects=[moving_block])
-moving_block_fill = ObjectAnimation([(ObjectAnimation.Action.MOVE_TO, {'x': 200, 'y': 560, 'time': 10}),
-                                     (ObjectAnimation.Action.SCALE_TO, {'width': 90, 'height': 90, 'time': 10})],
+moving_block_fill = ObjectAnimation([(ObjectAnimation.Action.MOVE_TO, {'x': 200, 'y': 560, 'time': 60}),
+                                     (ObjectAnimation.Action.SCALE_TO, {'width': 90, 'height': 90, 'time': 60})],
                                     animation_objects=[moving_block])
 
 moving_block_sequence_pos = 0
@@ -127,7 +127,8 @@ def main():
                             bar.modify_value(10, set_bottom=True)
                             print(f'{bar.display_range} -> {bar.target_range}')
 
-                        # case pygame.K_5:
+                        case pygame.K_5:
+                            print(ObjectAnimation.running_animations)
 
                         # case pygame.K_6:
 
