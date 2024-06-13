@@ -950,8 +950,8 @@ class Button:
     button_pressed: bool = False
     button_type: str = 'switch'
     target_scene_on_press: str | None = None
-    call_on_press: Callable or None = None
-    call_on_press_kwargs: dict | None = None
+    call_on_press: Callable | list[Callable] or None = None
+    call_on_press_kwargs: dict | list[dict] | None = None
 
     def __post_init__(self) -> None:
         if isinstance(self.rect, Sequence):
@@ -987,9 +987,6 @@ class Button:
                 else:
                     self.img_y = self.rect.y + (self.rect.width - self.img.width) // 2
 
-        # if self.post_transition_call_kwargs is None:
-        #     self.post_transition_call_kwargs = {}
-
     @property
     def text(self) -> str:
         return self._text.text
@@ -1012,11 +1009,24 @@ class Button:
         else:
             raise NotImplemented
 
-    def call_func(self, **kwargs) -> None:
+    def call_func(self, kwargs_list: list[dict] = None, **kwargs) -> None:
         if self.call_on_press is not None:
-            call_kwargs = {} if self.call_on_press_kwargs is None else self.call_on_press_kwargs
-            call_kwargs.update(**kwargs)
-            self.call_on_press(**call_kwargs)
+            if isinstance(self.call_on_press, Callable):
+                call_kwargs = {} if self.call_on_press_kwargs is None else self.call_on_press_kwargs
+                call_kwargs.update(**kwargs)
+                self.call_on_press(**call_kwargs)
+            elif isinstance(self.call_on_press, list):
+                for index, func in enumerate(self.call_on_press):
+                    if isinstance(func, Callable):
+                        if isinstance(self.call_on_press_kwargs, list) and len(self.call_on_press_kwargs) > index:
+                            callable_kwargs = self.call_on_press_kwargs[index]
+                        else:
+                            callable_kwargs = {}
+
+                        if len(kwargs_list) > index:
+                            callable_kwargs.update(**kwargs_list[index])
+
+                        func(**callable_kwargs)
 
     def render(self, display: pygame.Surface | None = None) -> None:
         display = display if display is not None else Display.window()
@@ -1029,12 +1039,16 @@ class Button:
         if self.text_raw is not None:
             self.text_raw.render(display)
 
-    def check_collision(self, event_pos: tuple[int, int] | None = None, **func_kwargs) -> bool:
+    def check_collision(self, event_pos: tuple[int, int] | None = None, kwargs_list: list[dict] = None,
+                        **func_kwargs) -> bool:
         event_pos = pygame.mouse.get_pos() if event_pos is None else event_pos
 
         if self.rect.rect.collidepoint(event_pos):
             self.button_pressed = not self.button_pressed
-            self.call_func(**func_kwargs)
+            if kwargs_list is None:
+                self.call_func(**func_kwargs)
+            else:
+                self.call_func(kwargs_list=kwargs_list)
 
             return True
         return False

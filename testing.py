@@ -51,20 +51,29 @@ moving_block_round_off = ObjectAnimation([(ObjectAnimation.Action.CHANGE_CORNER_
                                            {'radius': 60, 'time': 20})], animation_objects=[moving_block])
 moving_block_square = ObjectAnimation([(ObjectAnimation.Action.CHANGE_CORNER_RADIUS_TO,
                                         {'radius': 0, 'time': 20})], animation_objects=[moving_block])
+moving_block_reset_position = ObjectAnimation([(ObjectAnimation.Action.MOVE_TO, {'x': 200, 'y': 600}),
+                                               (ObjectAnimation.Action.SCALE_TO, {'width': 50, 'height': 50})],
+                                              animation_objects=[moving_block])
 
 moving_block_sequence_pos = 0
 block_rounded = False
 
 
-def round_block() -> None:
+def reset_block_seq_pos() -> None:
+    global moving_block_sequence_pos
+    moving_block_sequence_pos = 0
+
+
+def round_block(round_off: bool = None) -> None:
     global block_rounded
-    if block_rounded:
+    do_state = round_off if round_off is not None else not block_rounded
+
+    if not do_state:
         moving_block_square.start()
-        print('cornering block')
+        block_rounded = False
     else:
         moving_block_round_off.start()
-        print('rounding block')
-    block_rounded = not block_rounded
+        block_rounded = True
 
 
 def move_block() -> None:
@@ -85,6 +94,8 @@ fill_block_button = Button(Rect(300, 610, 60, 40, color=(200, 200, 200)), _text=
                            call_on_press=moving_block_fill.start)
 round_block_button = Button(Rect(300, 660, 60, 40, color=(200, 200, 200)), _text=Text('Round Off'), button_type='push',
                             call_on_press=round_block)
+reset_block_button = Button(Rect(300, 710, 60, 40, color=(200, 200, 200)), _text=Text('Reset'), button_type='push',
+                            call_on_press=[moving_block_reset_position.start, round_block, reset_block_seq_pos])
 
 
 def update_window():
@@ -106,6 +117,7 @@ def update_window():
     move_block_button.render()
     fill_block_button.render()
     round_block_button.render()
+    reset_block_button.render()
 
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
@@ -173,6 +185,7 @@ def main():
                     move_block_button.check_collision()
                     fill_block_button.check_collision()
                     round_block_button.check_collision()
+                    reset_block_button.check_collision(kwargs_list=[{}, {'round_off': False}])
 
         update_window()
 
