@@ -1059,13 +1059,13 @@ class Button:
 @dataclass
 class Bar:
     display_fps: ClassVar[int] = Display.fps if Display.fps is not None else 60
-    moving_bars: ClassVar[dict[int, list[list[float, float], bool]]] = {}
+    moving_bars: ClassVar[dict[int, tuple[list[float], bool]]] = {}
     bar_id_counter: ClassVar[int] = 0
     save_bars: ClassVar[list] = []
 
     rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
-    value_range: list[float, float] | None = None
-    display_range: list[float, float] | None = None
+    value_range: list[float] | None = None
+    display_range: list[float] | None = None
 
     bar_color: T_COLOR = (0, 0, 0)
     _text: Text | None = None
@@ -1122,7 +1122,7 @@ class Bar:
         return self.display_range[1]
 
     @property
-    def target_range(self) -> tuple[list[float, float], bool]:
+    def target_range(self) -> tuple[list[float], bool]:
         if self._bar_id in Bar.moving_bars.keys():
             return Bar.moving_bars[self._bar_id][0], True
         return self.display_range, False
@@ -1137,14 +1137,14 @@ class Bar:
         if not set_bottom:
             if self.value != set_value:
                 if not set_instant:
-                    Bar.moving_bars.update({self._bar_id: [[current_goal[0], set_value], set_bottom]})
+                    Bar.moving_bars.update({self._bar_id: ([current_goal[0], set_value], set_bottom)})
                     self.starting_frame = Frame.get()
                 else:
                     self.display_range[1] = set_value
         else:
             if self.display_range[0] != set_value:
                 if not set_instant:
-                    Bar.moving_bars.update({self._bar_id: [[set_value, current_goal[1]], set_bottom]})
+                    Bar.moving_bars.update({self._bar_id: ([set_value, current_goal[1]], set_bottom)})
                     self.starting_frame = Frame.get()
                 else:
                     self.display_range[0] = set_value
