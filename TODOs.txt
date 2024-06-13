@@ -14,9 +14,6 @@ FIXME: Rounded corners
 FIXME: Look into target_range property
 FIXME: Look into set_value func moving_bars update dict
 
-Category: Git
-TODO: make pip importable
-
 Category: Unverified features
 Test: Full Inputfield class
 Test: Full Image class
