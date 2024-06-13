@@ -1,8 +1,6 @@
 Category: ObjectAnimation
-TODO: Missing attribute catch for objects
-FIXME: Index error at operations end
-FIXME: Opposite direction operation conflict
 FIXME: Rounding errors when performing actions without set distance
+FIXME: start_action_frame is saved within ObjectAnimation instead of per Action individually
 
 Category: Button
 FIXME: Text auto formatting alignments
@@ -24,7 +22,6 @@ Test: Full Scene class
 Test: ObjectAnimation Scale operation
 Test: ObjectAnimation ChangeObject operation
 Test: ObjectAnimation trace attribute
-Test: ObjectAnimation ChangeRadius and ChangeRadiusTo operations
 
 Test: Button object text operations
 Test: Button object image operations

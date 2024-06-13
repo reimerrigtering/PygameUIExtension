@@ -824,7 +824,7 @@ class ObjectAnimation:
                 case cls.CHANGE_CORNER_RADIUS:
                     if 'radius' in kwargs.keys():
                         step_size = kwargs['radius'] * transform_factor
-                        cur_object.corner_radius_all += step_size
+                        cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
                     else:
                         raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS action')
 
@@ -832,7 +832,7 @@ class ObjectAnimation:
                     if 'radius' in kwargs.keys():
                         delta_r = kwargs['radius'] - cur_object.corner_radius_all
                         step_size = delta_r * transform_factor
-                        cur_object.corner_radius_all += step_size
+                        cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
                     else:
                         raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS_TO action')
 
@@ -915,7 +915,7 @@ class ObjectAnimation:
             else:
                 self.started_move = True
 
-            if self.action_index > len(self.action_sequence):
+            if self.action_index >= len(self.action_sequence):
                 self.stop()
                 return
 

@@ -47,8 +47,24 @@ moving_block_down = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': 40, 'ti
 moving_block_fill = ObjectAnimation([(ObjectAnimation.Action.MOVE_TO, {'x': 200, 'y': 560, 'time': 60}),
                                      (ObjectAnimation.Action.SCALE_TO, {'width': 90, 'height': 90, 'time': 60})],
                                     animation_objects=[moving_block])
+moving_block_round_off = ObjectAnimation([(ObjectAnimation.Action.CHANGE_CORNER_RADIUS_TO,
+                                           {'radius': 60, 'time': 20})], animation_objects=[moving_block])
+moving_block_square = ObjectAnimation([(ObjectAnimation.Action.CHANGE_CORNER_RADIUS_TO,
+                                        {'radius': 0, 'time': 20})], animation_objects=[moving_block])
 
 moving_block_sequence_pos = 0
+block_rounded = False
+
+
+def round_block() -> None:
+    global block_rounded
+    if block_rounded:
+        moving_block_square.start()
+        print('cornering block')
+    else:
+        moving_block_round_off.start()
+        print('rounding block')
+    block_rounded = not block_rounded
 
 
 def move_block() -> None:
@@ -67,6 +83,8 @@ move_block_button = Button(Rect(300, 560, 60, 40, color=(200, 200, 200)), _text=
                            call_on_press=move_block)
 fill_block_button = Button(Rect(300, 610, 60, 40, color=(200, 200, 200)), _text=Text('Fill'), button_type='push',
                            call_on_press=moving_block_fill.start)
+round_block_button = Button(Rect(300, 660, 60, 40, color=(200, 200, 200)), _text=Text('Round Off'), button_type='push',
+                            call_on_press=round_block)
 
 
 def update_window():
@@ -87,6 +105,7 @@ def update_window():
 
     move_block_button.render()
     fill_block_button.render()
+    round_block_button.render()
 
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
@@ -127,8 +146,7 @@ def main():
                             bar.modify_value(10, set_bottom=True)
                             print(f'{bar.display_range} -> {bar.target_range}')
 
-                        case pygame.K_5:
-                            print(ObjectAnimation.running_animations)
+                        # case pygame.K_5:
 
                         # case pygame.K_6:
 
@@ -154,6 +172,7 @@ def main():
                 case pygame.MOUSEBUTTONDOWN:
                     move_block_button.check_collision()
                     fill_block_button.check_collision()
+                    round_block_button.check_collision()
 
         update_window()
 
