@@ -6,5 +6,6 @@ setup(
     author='Reimer Rigtering',
     author_email='reimer.rigtering@gmail.com',
     url='https://github.com/reimerrigtering/PygameUIExtension',
-    requires=['pygame']
+    requires=['pygame'],
+    py_modules=['ui_classes']
 )
