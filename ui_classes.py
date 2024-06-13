@@ -764,7 +764,10 @@ class ObjectAnimation:
                 return wait_time, object_index
 
             if 'time' in kwargs.keys():
-                wait_time = start_action_time - Frame.get() + kwargs['time']
+                if action in (cls.SCALE_TO, cls.MOVE_TO, cls.CHANGE_CORNER_RADIUS_TO):
+                    wait_time = start_action_time - Frame.get() + kwargs['time']
+                else:
+                    wait_time = kwargs['time']
                 transform_factor = 1 / max(wait_time, 1)
             else:
                 transform_factor = 1
@@ -862,6 +865,7 @@ class ObjectAnimation:
         self.stop_reset = stop_reset
 
     def start(self):
+        self.start_action_frame = Frame.get()
         if self not in ObjectAnimation.running_animations:
             ObjectAnimation.running_animations.append(self)
 
@@ -907,6 +911,7 @@ class ObjectAnimation:
             self.next_frame = self.start_action_frame + wait_time
             if self.started_move:
                 self.action_index += 1
+                self.started_move = False
             else:
                 self.started_move = True
 
