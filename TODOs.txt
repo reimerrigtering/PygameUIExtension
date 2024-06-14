@@ -1,6 +1,5 @@
 Category: ObjectAnimation
-FIXME: Rounding errors when performing actions without set distance
-FIXME: start_action_frame is saved within ObjectAnimation instead of per Action individually
+FIXME: running multiple seperate animations on one object creates inconsistend endpoints for MOVE, SCALE and CORNER_RADIUS actions
 
 Category: Button
 FIXME: Text auto formatting alignments

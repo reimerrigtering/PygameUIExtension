@@ -33,69 +33,34 @@ text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
 bar = Bar(rectangle, bar_color=(255, 125, 0), bar_closed=True, start_fill_side=Placement.BOTTOM)
 
-moving_block = Rect(200, 600, 50, 50, color=(255, 0, 0))
-moving_block_bounds = Rect(200, 560, 90, 90, border=4)
+moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0))
+moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)
+move_amount = 40
+moving_block_seq_pos = 0
 
-moving_block_right = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'x': 40, 'time': 20})],
+moving_block_right = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'x': move_amount, 'time': 20})],
                                      animation_objects=[moving_block])
-moving_block_left = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'x': -40, 'time': 20})],
+moving_block_left = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'x': -move_amount, 'time': 20})],
                                     animation_objects=[moving_block])
-moving_block_up = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': -40, 'time': 20})],
+moving_block_up = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': -move_amount, 'time': 20})],
                                   animation_objects=[moving_block])
-moving_block_down = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': 40, 'time': 20})],
+moving_block_down = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': move_amount, 'time': 20})],
                                     animation_objects=[moving_block])
-moving_block_fill = ObjectAnimation([(ObjectAnimation.Action.MOVE_TO, {'x': 200, 'y': 560, 'time': 60}),
-                                     (ObjectAnimation.Action.SCALE_TO, {'width': 90, 'height': 90, 'time': 60})],
-                                    animation_objects=[moving_block])
-moving_block_round_off = ObjectAnimation([(ObjectAnimation.Action.CHANGE_CORNER_RADIUS_TO,
-                                           {'radius': 60, 'time': 20})], animation_objects=[moving_block])
-moving_block_square = ObjectAnimation([(ObjectAnimation.Action.CHANGE_CORNER_RADIUS_TO,
-                                        {'radius': 0, 'time': 20})], animation_objects=[moving_block])
-moving_block_reset_position = ObjectAnimation([(ObjectAnimation.Action.MOVE_TO, {'x': 200, 'y': 600}),
-                                               (ObjectAnimation.Action.SCALE_TO, {'width': 50, 'height': 50})],
-                                              animation_objects=[moving_block])
-
-moving_block_sequence_pos = 0
-block_rounded = False
-
-
-def reset_block_seq_pos() -> None:
-    global moving_block_sequence_pos
-    moving_block_sequence_pos = 0
-
-
-def round_block(round_off: bool = None) -> None:
-    global block_rounded
-    do_state = round_off if round_off is not None else not block_rounded
-
-    if not do_state:
-        moving_block_square.start()
-        block_rounded = False
-    else:
-        moving_block_round_off.start()
-        block_rounded = True
 
 
 def move_block() -> None:
-    global moving_block_sequence_pos
-    movement_list = [moving_block_up, moving_block_right, moving_block_down, moving_block_left]
+    global moving_block_seq_pos
+    moves = (moving_block_right, moving_block_down, moving_block_left, moving_block_up)
+    moves[moving_block_seq_pos].start()
 
-    movement_list[moving_block_sequence_pos].start()
-
-    if moving_block_sequence_pos == 3:
-        moving_block_sequence_pos = 0
+    if moving_block_seq_pos < 3:
+        moving_block_seq_pos += 1
     else:
-        moving_block_sequence_pos += 1
+        moving_block_seq_pos = 0
 
 
-move_block_button = Button(Rect(300, 560, 60, 40, color=(200, 200, 200)), _text=Text('Cycle'), button_type='push',
-                           call_on_press=move_block)
-fill_block_button = Button(Rect(300, 610, 60, 40, color=(200, 200, 200)), _text=Text('Fill'), button_type='push',
-                           call_on_press=moving_block_fill.start)
-round_block_button = Button(Rect(300, 660, 60, 40, color=(200, 200, 200)), _text=Text('Round Off'), button_type='push',
-                            call_on_press=round_block)
-reset_block_button = Button(Rect(300, 710, 60, 40, color=(200, 200, 200)), _text=Text('Reset'), button_type='push',
-                            call_on_press=[moving_block_reset_position.start, round_block, reset_block_seq_pos])
+move_block_button = Button(Rect(150, 500, 100, 50, color=(200, 200, 200)), _text=Text('Move Block ->'),
+                           button_type='push', call_on_press=move_block)
 
 
 def update_window():
@@ -112,12 +77,8 @@ def update_window():
     text_single.render()
 
     moving_block.render()
-    moving_block_bounds.render()
-
+    moving_block_sqr.render()
     move_block_button.render()
-    fill_block_button.render()
-    round_block_button.render()
-    reset_block_button.render()
 
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
@@ -183,9 +144,6 @@ def main():
 
                 case pygame.MOUSEBUTTONDOWN:
                     move_block_button.check_collision()
-                    fill_block_button.check_collision()
-                    round_block_button.check_collision()
-                    reset_block_button.check_collision(kwargs_list=[{}, {'round_off': False}])
 
         update_window()
 

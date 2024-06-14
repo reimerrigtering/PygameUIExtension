@@ -865,9 +865,11 @@ class ObjectAnimation:
         self.stop_reset = stop_reset
 
     def start(self):
-        self.start_action_frame = Frame.get()
         if self not in ObjectAnimation.running_animations:
+            self.start_action_frame = Frame.get()
             ObjectAnimation.running_animations.append(self)
+        else:
+            print('Animation already running')
 
     def stop(self):
         if self in ObjectAnimation.running_animations:
@@ -908,7 +910,7 @@ class ObjectAnimation:
 
         if Frame.get() >= self.next_frame:
             self.start_action_frame = Frame.get()
-            self.next_frame = self.start_action_frame + wait_time
+            self.next_frame = self.start_action_frame + wait_time - 1
             if self.started_move:
                 self.action_index += 1
                 self.started_move = False
