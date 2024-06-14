@@ -847,6 +847,9 @@ class ObjectAnimation:
                     except KeyError:
                         raise KeyError('index key should be given to use CHANGE_OBJECT action')
 
+                case _:
+                    raise ValueError('Invalid Action value')
+
             return wait_time, object_index
 
     running_animations: MutableSequence = []
