@@ -1,5 +1,5 @@
 import pygame
-from ui_classes import Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation, Button
+from ui_classes import Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa, Button
 
 
 display_window = Display((800, 800), 'testing')
@@ -39,24 +39,24 @@ moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)
 move_amount = 40
 moving_block_seq_pos = 0
 
-moving_block_right = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'x': move_amount, 'time': 20})],
-                                     animation_objects=[moving_block])
-moving_block_left = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'x': -move_amount, 'time': 20})],
-                                    animation_objects=[moving_block])
-moving_block_up = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': -move_amount, 'time': 20})],
-                                  animation_objects=[moving_block])
-moving_block_down = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': move_amount, 'time': 20})],
-                                    animation_objects=[moving_block])
+moving_block_right = oa([(oa.Action.MOVE, {'x': move_amount, 'time': 20})],
+                        animation_objects=[moving_block])
+moving_block_left = oa([(oa.Action.MOVE, {'x': -move_amount, 'time': 20})],
+                       animation_objects=[moving_block])
+moving_block_up = oa([(oa.Action.MOVE, {'y': -move_amount, 'time': 20})],
+                     animation_objects=[moving_block])
+moving_block_down = oa([(oa.Action.MOVE, {'y': move_amount, 'time': 20})],
+                       animation_objects=[moving_block])
 
-blue_block_color = ObjectAnimation([(ObjectAnimation.Action.SET_COLOR_TO, {'color': (150, 150, 255)})],
-                                   animation_objects=[moving_block])
-red_block_color = ObjectAnimation([(ObjectAnimation.Action.SET_COLOR_TO, {'color': (255, 0, 0)})],
-                                  animation_objects=[moving_block])
+blue_block_color = oa([(oa.Action.SET_COLOR_TO, {'color': (150, 150, 255)})],
+                      animation_objects=[moving_block])
+red_block_color = oa([(oa.Action.SET_COLOR_TO, {'color': (255, 0, 0)})],
+                     animation_objects=[moving_block])
 
-block_border = ObjectAnimation([(ObjectAnimation.Action.CHANGE_BORDER_WIDTH_TO, {'border': 20, 'time': 10})],
-                               animation_objects=[moving_block])
-no_block_border = ObjectAnimation([(ObjectAnimation.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 10})],
-                                  animation_objects=[moving_block])
+block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 20, 'time': 10})],
+                  animation_objects=[moving_block])
+no_block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 10})],
+                     animation_objects=[moving_block])
 
 
 def move_block() -> None:
@@ -102,7 +102,7 @@ def update_window():
 
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
-    ObjectAnimation.update_animations()
+    oa.update_animations()
     display_window.update()
 
 
