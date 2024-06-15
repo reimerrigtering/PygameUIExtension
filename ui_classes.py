@@ -753,6 +753,8 @@ class ObjectAnimation:
         CHANGE_CORNER_RADIUS: int = 4
         CHANGE_CORNER_RADIUS_TO: int = 5
         CHANGE_OBJECT: int = 6
+        SET_COLOR_TO: int = 7
+        CHANGE_BORDER_WIDTH_TO: int = 8
 
         @classmethod
         def execute(cls, objects, index, start_action_time, action: int = None, **kwargs):
@@ -847,6 +849,19 @@ class ObjectAnimation:
 
                         except KeyError:
                             raise KeyError('index key should be given to use CHANGE_OBJECT action')
+
+                    case cls.SET_COLOR_TO:
+                        if 'color' in kwargs.keys():
+                            cur_object.color = kwargs['color']
+                        else:
+                            raise KeyError('color key should be given to use SET_COLOR_TO action')
+
+                    case cls.CHANGE_BORDER_WIDTH_TO:
+                        if 'border' in kwargs.keys():
+                            step_size = kwargs['border'] * transform_factor
+                            cur_object.border = round(cur_object.border + step_size)
+                        else:
+                            raise KeyError('border key should be given to use CHANGE_BORDER_WIDTH_TO action')
 
                     case _:
                         raise ValueError('Invalid Action value')
