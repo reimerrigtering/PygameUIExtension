@@ -64,6 +64,7 @@ def move_block() -> None:
     moves = (moving_block_right, moving_block_down, moving_block_left, moving_block_up)
     moves[moving_block_seq_pos].start()
 
+    print(f'pos {moving_block_seq_pos} - border {moving_block.border} - color {moving_block.color}')
     if moving_block_seq_pos % 2 == 0:
         blue_block_color.start()
         block_border.start()

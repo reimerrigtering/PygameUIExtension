@@ -770,7 +770,7 @@ class ObjectAnimation:
                 return wait_time, object_index
 
             if 'time' in kwargs.keys():
-                if action in (cls.SCALE_TO, cls.MOVE_TO, cls.CHANGE_CORNER_RADIUS_TO):
+                if action in (cls.SCALE_TO, cls.MOVE_TO, cls.CHANGE_CORNER_RADIUS_TO, cls.CHANGE_BORDER_WIDTH_TO):
                     wait_time = start_action_time - Frame.get() + kwargs['time']
                 else:
                     wait_time = kwargs['time']
@@ -806,10 +806,10 @@ class ObjectAnimation:
 
                     case cls.MOVE:
                         if 'x' in kwargs.keys():
-                            step_size = kwargs['x'] * transform_factor
+                            step_size = int(kwargs['x'] * transform_factor)
                             cur_object.x += step_size
                         if 'y' in kwargs.keys():
-                            step_size = kwargs['y'] * transform_factor
+                            step_size = int(kwargs['y'] * transform_factor)
                             cur_object.y += step_size
 
                         if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
@@ -818,11 +818,11 @@ class ObjectAnimation:
                     case cls.MOVE_TO:
                         if 'x' in kwargs.keys():
                             delta_x = kwargs['x'] - cur_object.x
-                            step_size = delta_x * transform_factor
+                            step_size = int(delta_x * transform_factor)
                             cur_object.x += step_size
                         if 'y' in kwargs.keys():
                             delta_y = kwargs['y'] - cur_object.y
-                            step_size = delta_y * transform_factor
+                            step_size = int(delta_y * transform_factor)
                             cur_object.y += step_size
 
                         if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
@@ -830,16 +830,16 @@ class ObjectAnimation:
 
                     case cls.CHANGE_CORNER_RADIUS:
                         if 'radius' in kwargs.keys():
-                            step_size = kwargs['radius'] * transform_factor
-                            cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
+                            step_size = int(kwargs['radius'] * transform_factor)
+                            cur_object.corner_radius_all += step_size
                         else:
                             raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS action')
 
                     case cls.CHANGE_CORNER_RADIUS_TO:
                         if 'radius' in kwargs.keys():
                             delta_r = kwargs['radius'] - cur_object.corner_radius_all
-                            step_size = delta_r * transform_factor
-                            cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
+                            step_size = int(delta_r * transform_factor)
+                            cur_object.corner_radius_all += step_size
                         else:
                             raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS_TO action')
 
@@ -863,8 +863,9 @@ class ObjectAnimation:
                     case cls.CHANGE_BORDER_WIDTH_TO:
                         if 'border' in kwargs.keys():
                             delta_b = kwargs['border'] - cur_object.border
-                            step_size = delta_b * transform_factor
-                            cur_object.border = round(cur_object.border + step_size)
+                            step_size = int(delta_b * transform_factor)
+                            cur_object.border += step_size
+                            print(f'{cur_object.border} - {kwargs['border']} - {step_size}')
                         else:
                             raise KeyError('border key should be given to use CHANGE_BORDER_WIDTH_TO action')
 
@@ -900,7 +901,8 @@ class ObjectAnimation:
 
     def stop(self):
         if self in ObjectAnimation.running_animations:
-            ObjectAnimation.running_animations.remove(self)
+            # ObjectAnimation.running_animations.remove(self)
+            ObjectAnimation.running_animations[ObjectAnimation.running_animations.index(self)] = None
 
         if self.stop_reset:
             self.reset()
@@ -954,7 +956,10 @@ class ObjectAnimation:
     @classmethod
     def update_animations(cls):
         for animation in cls.running_animations:
-            animation.process_animation()
+            if animation is not None:
+                animation.process_animation()
+
+        cls.running_animations = [a for a in cls.running_animations if a is not None]
 
 
 @dataclass
