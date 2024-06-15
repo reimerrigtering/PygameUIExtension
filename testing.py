@@ -33,7 +33,7 @@ text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
 bar = Bar(rectangle, bar_color=(255, 125, 0), bar_closed=True, start_fill_side=Placement.BOTTOM)
 
-moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0))
+moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0), border=20)
 moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)
 move_amount = 40
 moving_block_seq_pos = 0
@@ -47,11 +47,28 @@ moving_block_up = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': -move_amo
 moving_block_down = ObjectAnimation([(ObjectAnimation.Action.MOVE, {'y': move_amount, 'time': 20})],
                                     animation_objects=[moving_block])
 
+blue_block_color = ObjectAnimation([(ObjectAnimation.Action.SET_COLOR_TO, {'color': (150, 150, 255)})],
+                                   animation_objects=[moving_block])
+red_block_color = ObjectAnimation([(ObjectAnimation.Action.SET_COLOR_TO, {'color': (255, 0, 0)})],
+                                  animation_objects=[moving_block])
+
+block_border = ObjectAnimation([(ObjectAnimation.Action.CHANGE_BORDER_WIDTH_TO, {'border': 20, 'time': 10})],
+                               animation_objects=[moving_block])
+no_block_border = ObjectAnimation([(ObjectAnimation.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 10})],
+                                  animation_objects=[moving_block])
+
 
 def move_block() -> None:
     global moving_block_seq_pos
     moves = (moving_block_right, moving_block_down, moving_block_left, moving_block_up)
     moves[moving_block_seq_pos].start()
+
+    if moving_block_seq_pos % 2 == 0:
+        blue_block_color.start()
+        block_border.start()
+    else:
+        red_block_color.start()
+        no_block_border.start()
 
     if moving_block_seq_pos < 3:
         moving_block_seq_pos += 1
@@ -76,8 +93,8 @@ def update_window():
     text.render()
     text_single.render()
 
-    moving_block.render()
     moving_block_sqr.render()
+    moving_block.render()
     move_block_button.render()
 
     Button.release_push_buttons()

@@ -1,5 +1,6 @@
 Category: ObjectAnimation
 FIXME: running multiple seperate animations on one object creates inconsistend endpoints for MOVE, SCALE and CORNER_RADIUS actions
+FIXME: CHANGE_BORDER_WIDTH_TO Action has incorrect endpoints
 
 Category: Button
 FIXME: Text auto formatting alignments
@@ -21,8 +22,6 @@ Test: Full Scene class
 Test: ObjectAnimation SCALE Action
 Test: ObjectAnimation CHANGE_OBJECT Action
 Test: ObjectAnimation trace attribute
-Test: ObjectAnimation SET_COLOR_TO Action
-Test: ObjectAnimation CHANGE_BORDER_WIDTH_TO Action
 
 Test: Button object text operations
 Test: Button object image operations

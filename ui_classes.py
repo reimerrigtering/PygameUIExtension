@@ -858,7 +858,8 @@ class ObjectAnimation:
 
                     case cls.CHANGE_BORDER_WIDTH_TO:
                         if 'border' in kwargs.keys():
-                            step_size = kwargs['border'] * transform_factor
+                            delta_b = kwargs['border'] - cur_object.border
+                            step_size = delta_b * transform_factor
                             cur_object.border = round(cur_object.border + step_size)
                         else:
                             raise KeyError('border key should be given to use CHANGE_BORDER_WIDTH_TO action')
