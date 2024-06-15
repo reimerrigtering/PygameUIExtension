@@ -432,6 +432,10 @@ class Text:
         else:
             raise NotImplemented
 
+    @property
+    def text_size_rect(self) -> Rect:
+        return Rect(self.x, self.y, self.resize_max_width, self.resize_max_height)
+
     def render(self, display: pygame.Surface | None = None) -> None:
         display = display if display is not None else Display.window()
         if display is None:
@@ -451,7 +455,7 @@ class Text:
 
                 match y_align:
                     case Placement.CENTER:
-                        text_y = self.y + (text_render.get_height() - self.margin) // 2
+                        text_y = self.y + (self.resize_max_height - text_render.get_height()) // 2
                     case Placement.TOP:
                         text_y = self.y + self.margin // 2
                     case Placement.BOTTOM:
@@ -463,7 +467,7 @@ class Text:
 
             match x_align:
                 case Placement.CENTER:
-                    text_x = self.x + (text_render.get_width() - self.margin) // 2
+                    text_x = self.x + (self.resize_max_width - text_render.get_width()) // 2
                 case Placement.LEFT:
                     text_x = self.x + self.margin // 2
                 case Placement.RIGHT:
@@ -514,11 +518,11 @@ class InputField:
             InputField.active_input = self
 
     @property
-    def text(self) -> str:
+    def text_str(self) -> str:
         return self._text.text
 
-    @text.setter
-    def text(self, value) -> None:
+    @text_str.setter
+    def text_str(self, value) -> None:
         if isinstance(value, str):
             if self.replace_text_char:
                 self._text.text = len(value) * self.replace_text_char
@@ -529,11 +533,11 @@ class InputField:
             raise NotImplemented
 
     @property
-    def text_raw(self) -> Text:
+    def text(self) -> Text:
         return self._text
 
-    @text_raw.setter
-    def text_raw(self, value) -> None:
+    @text.setter
+    def text(self, value) -> None:
         if isinstance(value, Text):
             self._text = value
         else:
@@ -544,7 +548,7 @@ class InputField:
         if self.replace_text_char:
             return self._hidden_text
         else:
-            return self.text
+            return self.text_str
 
     @property
     def empty_text(self) -> str:
@@ -594,12 +598,12 @@ class InputField:
         self.input_rect.render(display)
 
         text_x, text_y = self.input_rect.x, self.input_rect.y + self.input_rect.height // 2
-        if self.text == '' and not self == InputField.active_input:
+        if self.text_str == '' and not self == InputField.active_input:
             self.empty_text_raw.x, self.empty_text_raw.y = text_x, text_y
             self.empty_text_raw.render(display)
         else:
-            self.text_raw.x, self.text_raw.y = text_x, text_y
-            self.text_raw.render(display)
+            self.text.x, self.text.y = text_x, text_y
+            self.text.render(display)
 
     @classmethod
     def activate(cls, input_field) -> None:
@@ -630,25 +634,25 @@ class InputField:
                     return_text = cls.active_input.text_hidden
 
                 if cls.active_input.clear_on_submit:
-                    cls.active_input.text = ''
+                    cls.active_input.text_str = ''
 
                 return return_text
 
             elif event.key == pygame.K_BACKSPACE and cls.active_input.can_del:
-                if len(cls.active_input.text) >= 1:
-                    cls.active_input.text = cls.active_input.text[:-1]
+                if len(cls.active_input.text_str) >= 1:
+                    cls.active_input.text_str = cls.active_input.text_str[:-1]
                 return
 
-        elif len(cls.active_input.text) < cls.active_input.character_max and \
+        elif len(cls.active_input.text_str) < cls.active_input.character_max and \
                 cls.active_input.is_allowed(event.unicode):
-            cls.active_input.text += event.unicode
+            cls.active_input.text_str += event.unicode
             return
 
         print(f'Input processing is not implemented for {event.unicode}')
         return
 
     def __repr__(self) -> str:
-        return f'pos: ({self.input_rect.x}, {self.input_rect.y}) - text: {self.text}'
+        return f'pos: ({self.input_rect.x}, {self.input_rect.y}) - text: {self.text_str}'
 
 
 @dataclass
@@ -986,12 +990,12 @@ class Button:
         if self.pressed_color is not None:
             self.rect.color = self.pressed_color
 
-        if self.fit_text and self.text_raw is not None:
-            self.text_raw.x = self.rect.x
-            self.text_raw.y = self.rect.y
-            self.text_raw.resize_max_width = self.rect.width
-            self.text_raw.resize_max_height = self.rect.height
-            self.text_raw.auto_size_font()
+        if self.fit_text and self.text is not None:
+            self.text.x = self.rect.x
+            self.text.y = self.rect.y
+            self.text.resize_max_width = self.rect.width
+            self.text.resize_max_height = self.rect.height
+            self.text.auto_size_font()
 
         if self.img is not None:
             if self.img_fill_button:
@@ -1015,22 +1019,22 @@ class Button:
         Button.active_buttons.append(self)
 
     @property
-    def text(self) -> str:
+    def text_str(self) -> str:
         return self._text.text
 
-    @text.setter
-    def text(self, value) -> None:
+    @text_str.setter
+    def text_str(self, value) -> None:
         if isinstance(value, str):
             self._text.text = value
         else:
             raise NotImplemented
 
     @property
-    def text_raw(self) -> Text:
+    def text(self) -> Text:
         return self._text
 
-    @text_raw.setter
-    def text_raw(self, value) -> None:
+    @text.setter
+    def text(self, value) -> None:
         if isinstance(value, Text):
             self._text = value
         else:
@@ -1063,8 +1067,8 @@ class Button:
         self.rect.render(display)
         if self.img is not None:
             self.img.render(display)
-        if self.text_raw is not None:
-            self.text_raw.render(display)
+        if self.text is not None:
+            self.text.render(display)
 
     def check_collision(self, event_pos: tuple[int, int] | None = None, kwargs_list: list[dict] = None,
                         **func_kwargs) -> bool:

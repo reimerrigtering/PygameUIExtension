@@ -15,6 +15,7 @@ ellipse2 = Ellipse(275, 75, 200, 100, color=(0, 150, 150), border=10)
 
 text_single = Text('Double line test...', 400, 370, (50, 0, 200), alignment=Placement.LEFT, resize_max_width=250,
                    resize_max_height=100)
+text_simple_rect = Rect(400, 320, 250, 100, color=(0, 0, 0), border=2)
 
 text = Text(
     """Testing Text DML:
@@ -76,7 +77,7 @@ def move_block() -> None:
         moving_block_seq_pos = 0
 
 
-move_block_button = Button(Rect(150, 500, 100, 50, color=(200, 200, 200)), _text=Text('Move Block ->'),
+move_block_button = Button(Rect(150, 500, 100, 50, color=(200, 200, 200)), _text=Text('Move Block', margin=3),
                            button_type='push', call_on_press=move_block)
 
 
@@ -92,6 +93,7 @@ def update_window():
     text_surround_rect.render()
     text.render()
     text_single.render()
+    text_simple_rect.render()
 
     moving_block_sqr.render()
     moving_block.render()
