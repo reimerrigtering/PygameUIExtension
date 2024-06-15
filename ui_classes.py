@@ -772,83 +772,87 @@ class ObjectAnimation:
             else:
                 transform_factor = 1
 
-            match action:
-                case cls.SCALE:
-                    if 'width' in kwargs.keys():
-                        step_size = int(kwargs['width'] * transform_factor)
-                        cur_object.width += step_size
-                    if 'height' in kwargs.keys():
-                        step_size = int(kwargs['height'] * transform_factor)
-                        cur_object.height += step_size
+            try:
+                match action:
+                    case cls.SCALE:
+                        if 'width' in kwargs.keys():
+                            step_size = int(kwargs['width'] * transform_factor)
+                            cur_object.width += step_size
+                        if 'height' in kwargs.keys():
+                            step_size = int(kwargs['height'] * transform_factor)
+                            cur_object.height += step_size
 
-                    if 'width' not in kwargs.keys() and 'height' not in kwargs.keys():
-                        raise KeyError('width and/or height key should be given to use SCALE action')
+                        if 'width' not in kwargs.keys() and 'height' not in kwargs.keys():
+                            raise KeyError('width and/or height key should be given to use SCALE action')
 
-                case cls.SCALE_TO:
-                    if 'width' in kwargs.keys():
-                        delta_w = kwargs['width'] - cur_object.width
-                        step_size = int(delta_w * transform_factor)
-                        cur_object.width += step_size
-                    if 'height' in kwargs.keys():
-                        delta_h = kwargs['height'] - cur_object.height
-                        step_size = int(delta_h * transform_factor)
-                        cur_object.height += step_size
+                    case cls.SCALE_TO:
+                        if 'width' in kwargs.keys():
+                            delta_w = kwargs['width'] - cur_object.width
+                            step_size = int(delta_w * transform_factor)
+                            cur_object.width += step_size
+                        if 'height' in kwargs.keys():
+                            delta_h = kwargs['height'] - cur_object.height
+                            step_size = int(delta_h * transform_factor)
+                            cur_object.height += step_size
 
-                    if 'width' not in kwargs.keys() and 'height' not in kwargs.keys():
-                        raise KeyError('width and/or height key should be given to use SCALE_TO action')
+                        if 'width' not in kwargs.keys() and 'height' not in kwargs.keys():
+                            raise KeyError('width and/or height key should be given to use SCALE_TO action')
 
-                case cls.MOVE:
-                    if 'x' in kwargs.keys():
-                        step_size = kwargs['x'] * transform_factor
-                        cur_object.x += step_size
-                    if 'y' in kwargs.keys():
-                        step_size = kwargs['y'] * transform_factor
-                        cur_object.y += step_size
+                    case cls.MOVE:
+                        if 'x' in kwargs.keys():
+                            step_size = kwargs['x'] * transform_factor
+                            cur_object.x += step_size
+                        if 'y' in kwargs.keys():
+                            step_size = kwargs['y'] * transform_factor
+                            cur_object.y += step_size
 
-                    if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
-                        raise KeyError('x and/or y key should be given to use MOVE action')
+                        if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
+                            raise KeyError('x and/or y key should be given to use MOVE action')
 
-                case cls.MOVE_TO:
-                    if 'x' in kwargs.keys():
-                        delta_x = kwargs['x'] - cur_object.x
-                        step_size = delta_x * transform_factor
-                        cur_object.x += step_size
-                    if 'y' in kwargs.keys():
-                        delta_y = kwargs['y'] - cur_object.y
-                        step_size = delta_y * transform_factor
-                        cur_object.y += step_size
+                    case cls.MOVE_TO:
+                        if 'x' in kwargs.keys():
+                            delta_x = kwargs['x'] - cur_object.x
+                            step_size = delta_x * transform_factor
+                            cur_object.x += step_size
+                        if 'y' in kwargs.keys():
+                            delta_y = kwargs['y'] - cur_object.y
+                            step_size = delta_y * transform_factor
+                            cur_object.y += step_size
 
-                    if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
-                        raise KeyError('x and/or y key should be given to use MOVE_TO action')
+                        if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
+                            raise KeyError('x and/or y key should be given to use MOVE_TO action')
 
-                case cls.CHANGE_CORNER_RADIUS:
-                    if 'radius' in kwargs.keys():
-                        step_size = kwargs['radius'] * transform_factor
-                        cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
-                    else:
-                        raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS action')
+                    case cls.CHANGE_CORNER_RADIUS:
+                        if 'radius' in kwargs.keys():
+                            step_size = kwargs['radius'] * transform_factor
+                            cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
+                        else:
+                            raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS action')
 
-                case cls.CHANGE_CORNER_RADIUS_TO:
-                    if 'radius' in kwargs.keys():
-                        delta_r = kwargs['radius'] - cur_object.corner_radius_all
-                        step_size = delta_r * transform_factor
-                        cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
-                    else:
-                        raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS_TO action')
+                    case cls.CHANGE_CORNER_RADIUS_TO:
+                        if 'radius' in kwargs.keys():
+                            delta_r = kwargs['radius'] - cur_object.corner_radius_all
+                            step_size = delta_r * transform_factor
+                            cur_object.corner_radius_all = round(cur_object.corner_radius_all + step_size)
+                        else:
+                            raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS_TO action')
 
-                case cls.CHANGE_OBJECT:
-                    try:
-                        object_index = kwargs['index']
+                    case cls.CHANGE_OBJECT:
+                        try:
+                            object_index = kwargs['index']
 
-                        if cur_object.trace:
-                            objects[object_index].width = cur_object.width
-                            objects[object_index].height = cur_object.height
+                            if cur_object.trace:
+                                objects[object_index].width = cur_object.width
+                                objects[object_index].height = cur_object.height
 
-                    except KeyError:
-                        raise KeyError('index key should be given to use CHANGE_OBJECT action')
+                        except KeyError:
+                            raise KeyError('index key should be given to use CHANGE_OBJECT action')
 
-                case _:
-                    raise ValueError('Invalid Action value')
+                    case _:
+                        raise ValueError('Invalid Action value')
+
+            except AttributeError:
+                raise AttributeError('The animation object misses attributes to be compatible with this Action')
 
             return wait_time, object_index
 

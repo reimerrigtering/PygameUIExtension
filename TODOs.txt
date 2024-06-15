@@ -1,5 +1,7 @@
 Category: ObjectAnimation
 FIXME: running multiple seperate animations on one object creates inconsistend endpoints for MOVE, SCALE and CORNER_RADIUS actions
+TODO: Add color attr Action
+TODO: Add border attr Action
 
 Category: Button
 FIXME: Text auto formatting alignments
