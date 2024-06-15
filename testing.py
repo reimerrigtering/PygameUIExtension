@@ -154,13 +154,14 @@ def main():
                             ellipse2.width = min(ellipse2.width + 10, 300)
                             ellipse1.height = min(ellipse1.height + 10, 300)
 
-                        # case pygame.K_9:
+                        case pygame.K_9:
+                            print(Button.active_buttons)
 
                         case pygame.K_i:
                             print(f'block_pos: {moving_block.x}, {moving_block.y}')
 
                 case pygame.MOUSEBUTTONDOWN:
-                    move_block_button.check_collision()
+                    Button.check_all_collisions()
 
         update_window()
 

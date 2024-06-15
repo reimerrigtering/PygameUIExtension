@@ -972,7 +972,7 @@ class Button:
     img_fill_button: bool = True
     img_alignment: int = Placement.CENTER
 
-    button_pressed: bool = False
+    pressed: bool = False
     button_type: str = 'switch'
     target_scene_on_press: str | None = None
     call_on_press: Callable | list[Callable] or None = None
@@ -1011,6 +1011,8 @@ class Button:
                     self.img.y = self.rect.y + self.rect.width - self.img.width - self.img_margin
                 else:
                     self.img_y = self.rect.y + (self.rect.width - self.img.width) // 2
+
+        Button.active_buttons.append(self)
 
     @property
     def text(self) -> str:
@@ -1069,13 +1071,17 @@ class Button:
         event_pos = pygame.mouse.get_pos() if event_pos is None else event_pos
 
         if self.rect.rect.collidepoint(event_pos):
-            self.button_pressed = not self.button_pressed
+            if self.pressed:
+                self.pressed = False
+                return False
+            self.pressed = not self.pressed
             if kwargs_list is None:
                 self.call_func(**func_kwargs)
             else:
                 self.call_func(kwargs_list=kwargs_list)
 
             return True
+
         return False
 
     @classmethod
@@ -1088,7 +1094,7 @@ class Button:
     @classmethod
     def release_push_buttons(cls) -> None:
         for button in cls.active_buttons:
-            if button.type == 'push' and button.pressed is True:
+            if button.button_type == 'push' and button.pressed is True:
                 button.pressed = False
 
     def __repr__(self) -> str:

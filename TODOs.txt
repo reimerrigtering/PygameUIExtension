@@ -4,7 +4,6 @@ FIXME: CHANGE_BORDER_WIDTH_TO Action has incorrect endpoints
 
 Category: Button
 FIXME: Text auto formatting alignments
-FIXME: Classwide button collision checks for push buttons
 
 Category: Bar
 FIXME: Set_value bottom line issues
