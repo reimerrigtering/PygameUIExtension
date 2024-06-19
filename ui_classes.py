@@ -865,7 +865,6 @@ class ObjectAnimation:
                             delta_b = kwargs['border'] - cur_object.border
                             step_size = int(delta_b * transform_factor)
                             cur_object.border += step_size
-                            print(f'{cur_object.border} - {kwargs['border']} - {step_size}')
                         else:
                             raise KeyError('border key should be given to use CHANGE_BORDER_WIDTH_TO action')
 
@@ -924,12 +923,8 @@ class ObjectAnimation:
         self.animation_objects[self.object_index].render()
 
     def process_animation(self):
-        try:
-            current_action = self.action_sequence[self.action_index]
-        except IndexError as e:
-            print(e)
-            self.stop()
-            return
+        current_action = self.action_sequence[self.action_index]
+
         wait_time, object_index = ObjectAnimation.Action.execute(self.animation_objects, self.object_index,
                                                                  self.start_action_frame, current_action[0],
                                                                  **current_action[1])
@@ -1113,35 +1108,47 @@ class Button:
 @dataclass
 class Bar:
     display_fps: ClassVar[int] = Display.fps if Display.fps is not None else 60
-    moving_bars: ClassVar[dict[int, tuple[list[float], bool]]] = {}
-    bar_id_counter: ClassVar[int] = 0
-    save_bars: ClassVar[list] = []
+    moving_bars: ClassVar[list] = []
+    active_bars: ClassVar[list] = []
+
+    # _bar_id_counter: ClassVar[int] = 0
 
     rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
-    value_range: list[float] | None = None
-    display_range: list[float] | None = None
+    max_value_range: list[float] | None = None
+    goal_value_range: list[float] | None = None
+    _display_range: list[float] | None = field(default=None, kw_only=True)
 
-    bar_color: T_COLOR = (0, 0, 0)
+    bar_border_width: int = 2
+
+    bar_color: T_COLOR = None
     _text: Text | None = None
     bar_bg_img: Image | None = None
 
     bar_closed: bool = False
 
     start_fill_side: int = Placement.LEFT
-    time_to_use: float = 3.0
+    bar_speed: float = 3.0
     starting_frame: int = Frame.get()
 
-    _bar_id = bar_id_counter
+    # _bar_id = _bar_id_counter
 
     def __post_init__(self) -> None:
-        Bar.bar_id_counter += 1
-        Bar.save_bars.append(self)
+        # Bar._bar_id_counter += 1
+        Bar.active_bars.append(self)
 
         if isinstance(self.rect, Sequence):
-            self.rect = Rect(*self.rect[:4], color=self.rect[4])
+            self.rect = Rect(*self.rect[:4], color=self.rect[4], border=self.bar_border_width)
+        elif isinstance(self.rect, Rect):
+            if self.rect.border == 0:
+                self.rect.border = self.bar_border_width
+            else:
+                self.bar_border_width = self.rect.border
 
-        self.value_range = [0.0, 100.0] if self.value_range is None else self.value_range
-        self.display_range = self.value_range if self.display_range is None else self.display_range
+        if self.bar_color is None:
+            self.bar_color = tuple(255 - self.rect.color[c] for c in self.rect.color)
+
+        self.max_value_range = [0.0, 100.0] if self.max_value_range is None else self.max_value_range
+        self.display_range = self.max_value_range
 
         if self.start_fill_side not in (Placement.LEFT, Placement.BOTTOM):
             self.start_fill_side = Placement.LEFT
@@ -1150,88 +1157,65 @@ class Bar:
             self.bar_bg_img.x, self.bar_bg_img.y = self.rect.x + self.rect.border, self.rect.y + self.rect.border
 
     @property
-    def text(self) -> str:
+    def text_str(self) -> str:
         return self._text.text
 
-    @text.setter
-    def text(self, value: object) -> None:
+    @text_str.setter
+    def text_str(self, value: object) -> None:
         if isinstance(value, str):
             self._text.text = value
         else:
             raise NotImplemented
 
     @property
-    def text_raw(self) -> Text:
+    def text(self) -> Text:
         return self._text
 
-    @text_raw.setter
-    def text_raw(self, value: object) -> None:
+    @text.setter
+    def text(self, value: object) -> None:
         if isinstance(value, Text):
             self._text = value
         else:
             raise NotImplemented
 
-    @property
-    def value(self) -> float:
-        return self.display_range[1]
+    def set_value(self, value: float, set_bottom: bool = False) -> None:
+        set_value = min(max(value, self.max_value_range[0]), self.max_value_range[1])
+        target_index = 1 if not set_bottom else 0
 
-    @property
-    def target_range(self) -> tuple[list[float], bool]:
-        if self._bar_id in Bar.moving_bars.keys():
-            return Bar.moving_bars[self._bar_id][0], True
-        return self.display_range, False
+        self.goal_value_range[target_index] = set_value
 
-    def set_value(self, value: float, set_instant: bool = False, set_bottom: bool = False) -> None:
-        set_value = min(max(value, self.value_range[0]), self.value_range[1])
-        if self._bar_id in Bar.moving_bars.keys():
-            current_goal = Bar.moving_bars[self._bar_id][0]
+        if self not in Bar.moving_bars:
+            Bar.moving_bars.append(self)
+
+    def modify_value(self, value: float, set_bottom: bool = False) -> None:
+        target_index = 1 if not set_bottom else 0
+        self.set_value(self.goal_value_range[target_index] + value, set_bottom)
+
+    def set_percentage(self, percentage: float, set_bottom: bool = False) -> None:
+        value_for_percent = percentage / 100 * self.max_value_range[1]
+        self.set_value(value_for_percent, set_bottom)
+
+    def modify_percentage(self, percentage: float, set_bottom: bool = False) -> None:
+        value_for_percent = percentage / 100 * self.max_value_range[1]
+        self.modify_value(value_for_percent, set_bottom)
+
+    def get_bar_width(self, value: float) -> int:
+        bg_width = self.rect.width - 2 * self.bar_border_width
+        ratio_filled = value / self.max_value_range[1]
+        return int(bg_width * ratio_filled)
+
+    def get_bar_height(self, value: float) -> int:
+        bg_height = self.rect.height - 2 * self.bar_border_width
+        ratio_filled = value / self.max_value_range[1]
+        return int(bg_height * ratio_filled)
+
+    def get_bar_size(self) -> tuple[int, int]:
+        if self.start_fill_side == Placement.LEFT:
+            return (self.get_bar_width(self._display_range[1] - self._display_range[0]),
+                    self.rect.height - 2 * self.bar_border_width)
         else:
-            current_goal = self.display_range
-
-        if not set_bottom:
-            if self.value != set_value:
-                if not set_instant:
-                    Bar.moving_bars.update({self._bar_id: ([current_goal[0], set_value], set_bottom)})
-                    self.starting_frame = Frame.get()
-                else:
-                    self.display_range[1] = set_value
-        else:
-            if self.display_range[0] != set_value:
-                if not set_instant:
-                    Bar.moving_bars.update({self._bar_id: ([set_value, current_goal[1]], set_bottom)})
-                    self.starting_frame = Frame.get()
-                else:
-                    self.display_range[0] = set_value
-
-    def modify_value(self, value: float, set_instant: bool = False, set_bottom: bool = False) -> None:
-        if self._bar_id not in Bar.moving_bars.keys():
-            if not set_bottom:
-                self.set_value(self.display_range[1] + value, set_instant, set_bottom)
-            else:
-                self.set_value(self.display_range[0] + value, set_instant, set_bottom)
-        else:
-            if not set_bottom:
-                self.set_value(Bar.moving_bars[self._bar_id][0][1] + value, set_instant, set_bottom)
-            else:
-                self.set_value(Bar.moving_bars[self._bar_id][0][0] + value, set_instant, set_bottom)
-
-    def set_percentage(self, percentage: float, set_instant: bool = False, set_bottom: bool = False) -> None:
-        value_for_percent = percentage / 100 * self.value_range[1]
-        self.set_value(value_for_percent, set_instant, set_bottom)
-
-    def modify_percentage(self, percentage: float, set_instant: bool = False, set_bottom: bool = False) -> None:
-        value_for_percent = percentage / 100 * self.value_range[1]
-        self.modify_value(value_for_percent, set_instant, set_bottom)
-
-    def get_bar_width(self, value: float) -> float:
-        bg_width = self.rect.width - 2 * self.rect.border
-        ratio_filled = value / self.value_range[1]
-        return bg_width * ratio_filled
-
-    def get_bar_height(self, value: float) -> float:
-        bg_height = self.rect.height - 2 * self.rect.border
-        ratio_filled = value / self.value_range[1]
-        return bg_height * ratio_filled
+            return (self.rect.width - 2 * self.bar_border_width,
+                    self.get_bar_height(self._display_range[1] - self._display_range[0]))
 
     def render(self, display: pygame.Surface | None = None) -> None:
         display = display if display is not None else Display.window()
@@ -1240,98 +1224,85 @@ class Bar:
 
         self.rect.render(display)
 
+        if self.start_fill_side == Placement.LEFT:
+            bar_x = self.rect.x + self.bar_border_width + self.get_bar_width(self._display_range[0])
+            bar_y = self.bar_bg_img.y = self.rect.y + self.bar_border_width
+        else:
+            bar_x = self.rect.x + self.bar_border_width
+            bar_y = self.rect.y + self.bar_border_width + self.get_bar_width(self.max_value_range[1] -
+                                                                             self._display_range[1])
+        bar_size = self.get_bar_size()
+
         if self.bar_bg_img is not None:
-            if self.start_fill_side == Placement.LEFT:
-                self.bar_bg_img.x = self.display_range[0]
-                self.bar_bg_img.resize((self.get_bar_width(self.display_range[1] - self.display_range[0]),
-                                       self.rect.height - 2 * self.rect.border))
-            else:
-                self.bar_bg_img.y = self.display_range[0]
-                self.bar_bg_img.resize((self.rect.width - 2 * self.rect.border,
-                                       self.get_bar_height(self.display_range[1] - self.display_range[0])))
+            self.bar_bg_img.x = bar_x
+            self.bar_bg_img.y = bar_y
+            self.bar_bg_img.resize(bar_size)
+
             self.bar_bg_img.render(display)
         else:
-            if self.start_fill_side == Placement.LEFT:
-                bar_rect = Rect(self.rect.x + self.rect.border + int(self.get_bar_width(self.display_range[0])),
-                                self.rect.y + self.rect.border, int(self.get_bar_width(self.display_range[1]
-                                                                                       - self.display_range[0])),
-                                self.rect.height - 2 * self.rect.border, color=self.bar_color)
-            else:
-                bar_rect = Rect(self.rect.x + self.rect.border, self.rect.y + self.rect.height - self.rect.border
-                                - int(self.get_bar_height(self.display_range[1] - self.display_range[0])),
-                                self.rect.width - 2 * self.rect.border,
-                                int(self.get_bar_height(self.display_range[1] - self.display_range[0])),
-                                color=self.bar_color)
+            bar_rect = Rect(bar_x, bar_y, bar_size[0], bar_size[1], color=self.bar_color)
             bar_rect.render(display)
 
         if self.bar_closed:
-            if self.value > self.value_range[0] + self.rect.border and self.value != self.value_range[1]:
-                if self.start_fill_side == Placement.LEFT:
-                    bar_close_block = Rect(self.rect.x + self.rect.border +
-                                           int(self.get_bar_width(self.display_range[1])),
-                                           self.rect.y + self.rect.border, self.rect.border, self.rect.height
-                                           - 2 * self.rect.border, color=self.rect.color)
-                else:
-                    bar_close_block = Rect(self.rect.x + self.rect.border,
-                                           self.rect.y + self.rect.border
-                                           + int(self.get_bar_height(self.value_range[1] - self.display_range[1])),
-                                           self.rect.width - self.rect.border, self.rect.border, color=self.rect.color)
-                bar_close_block.render(display)
+            if self.start_fill_side == Placement.LEFT:
+                stop_width = self.bar_border_width
+                stop_height = self.rect.height
+            else:
+                stop_width = self.rect.width
+                stop_height = self.bar_border_width
 
-            if self.display_range[0] > self.value_range[0] + self.rect.border and \
-                    self.display_range[0] != self.value_range[1]:
-                if self.start_fill_side == Placement.LEFT:
-                    bar_close_block = Rect(self.rect.x + int(self.get_bar_width(self.display_range[0]))
-                                           + self.rect.border, self.rect.y + self.rect.border, self.rect.border,
-                                           self.rect.height - 2 * self.rect.border, color=self.rect.color)
-                else:
-                    bar_close_block = Rect(self.rect.x,
-                                           int(self.rect.y + self.get_bar_height(self.value_range[1]
-                                                                                 - self.value_range[0]))
-                                           - self.rect.border, self.rect.width, self.rect.border, color=self.rect.color)
-                bar_close_block.render(display)
+            if (self._display_range[1] > self.max_value_range[0] + self.rect.border and
+                    self._display_range[1] != self.max_value_range[1]):
 
-        if self.text_raw is not None:
-            self.text_raw.render(display)
+                if self.start_fill_side == Placement.LEFT:
+                    max_stop_block = Rect(self.rect.x + self.bar_border_width + bar_size[0],
+                                          self.rect.y + self.bar_border_width, stop_width, stop_height,
+                                          color=self.rect.color)
+                else:
+                    max_stop_block = Rect(self.rect.x + self.bar_border_width,
+                                          self.rect.y + self.bar_border_width +
+                                          self.get_bar_width(self.max_value_range[1] - self._display_range[1]),
+                                          stop_width, stop_height,
+                                          color=self.rect.color)
+
+                max_stop_block.render(display)
+
+            elif (self._display_range[0] > self.max_value_range[0] + self.rect.border and
+                  self._display_range[0] != self.max_value_range[1]):
+
+                if self.start_fill_side == Placement.LEFT:
+                    max_stop_block = Rect(self.rect.x + self.bar_border_width +
+                                          self.get_bar_width(self._display_range[0]),
+                                          self.rect.y + self.bar_border_width, stop_width, stop_height,
+                                          color=self.rect.color)
+                else:
+                    max_stop_block = Rect(self.rect.x + self.bar_border_width,
+                                          self.rect.y + self.bar_border_width +
+                                          self.get_bar_width(self.max_value_range[1] - self._display_range[1]),
+                                          stop_width, stop_height,
+                                          color=self.rect.color)
+
+                max_stop_block.render(display)
+
+        if self.text is not None:
+            self.text.render(display)
 
     def process_bar_movement(self) -> None:
-        if self._bar_id in Bar.moving_bars.keys():
-            if not Bar.moving_bars[self._bar_id][1]:
-                target_value = Bar.moving_bars[self._bar_id][0][1]
-            else:
-                target_value = Bar.moving_bars[self._bar_id][0][0]
+        for side in range(2):
+            if self.display_range[side] != self.goal_value_range[side]:
+                delta_value = self.goal_value_range[side] - self.display_range[side]
 
-            if self.value == target_value:
-                Bar.moving_bars.pop(self._bar_id)
-            else:
-                step_size = Frame.get_delta(self.starting_frame) / self.display_fps * self.time_to_use
+                self.display_range[side] = min(max(self.display_range[side] +
+                                                   int(delta_value / (self.bar_speed * self.display_fps)),
+                                                   self.max_value_range[0]), self.max_value_range[1])
 
-                if not Bar.moving_bars[self._bar_id][1]:
-                    d_value = self.value - target_value
-
-                    if abs(d_value) < step_size:
-                        self.display_range[1] = target_value
-                    else:
-                        if self.value < target_value:
-                            self.display_range[1] += step_size
-                        else:
-                            self.display_range[1] -= step_size
-                else:
-                    d_value = self.display_range[0] - target_value
-
-                    if abs(d_value) < step_size:
-                        self.display_range[0] = target_value
-                    else:
-                        if self.display_range[0] < target_value:
-                            self.display_range[0] += step_size
-                        else:
-                            self.display_range[0] -= step_size
+                if self.display_range[side] == self.goal_value_range[side] and self in Bar.moving_bars:
+                    Bar.moving_bars.remove(self)
 
     @classmethod
     def process_all_bar_movement(cls) -> None:
-        moving_bars_ids = list(cls.moving_bars.keys())
-        for bar_id in moving_bars_ids:
-            Bar.save_bars[bar_id].process_bar_movement()
+        for bar in cls.moving_bars:
+            bar.process_bar_movement()
 
 
 class Scene:
