@@ -1115,8 +1115,8 @@ class Bar:
 
     rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
     max_value_range: list[float] | None = None
-    goal_value_range: list[float] | None = None
-    _display_range: list[float] | None = field(default=None, kw_only=True)
+    goal_value_range: list[float] | None = field(default=None, kw_only=True)
+    display_range: list[float] | None = field(default=None, kw_only=True)
 
     bar_border_width: int = 2
 
@@ -1148,6 +1148,7 @@ class Bar:
             self.bar_color = tuple(255 - self.rect.color[c] for c in self.rect.color)
 
         self.max_value_range = [0.0, 100.0] if self.max_value_range is None else self.max_value_range
+        self.goal_value_range = self.max_value_range
         self.display_range = self.max_value_range
 
         if self.start_fill_side not in (Placement.LEFT, Placement.BOTTOM):
@@ -1211,11 +1212,11 @@ class Bar:
 
     def get_bar_size(self) -> tuple[int, int]:
         if self.start_fill_side == Placement.LEFT:
-            return (self.get_bar_width(self._display_range[1] - self._display_range[0]),
+            return (self.get_bar_width(self.display_range[1] - self.display_range[0]),
                     self.rect.height - 2 * self.bar_border_width)
         else:
             return (self.rect.width - 2 * self.bar_border_width,
-                    self.get_bar_height(self._display_range[1] - self._display_range[0]))
+                    self.get_bar_height(self.display_range[1] - self.display_range[0]))
 
     def render(self, display: pygame.Surface | None = None) -> None:
         display = display if display is not None else Display.window()
@@ -1225,12 +1226,12 @@ class Bar:
         self.rect.render(display)
 
         if self.start_fill_side == Placement.LEFT:
-            bar_x = self.rect.x + self.bar_border_width + self.get_bar_width(self._display_range[0])
+            bar_x = self.rect.x + self.bar_border_width + self.get_bar_width(self.display_range[0])
             bar_y = self.bar_bg_img.y = self.rect.y + self.bar_border_width
         else:
             bar_x = self.rect.x + self.bar_border_width
             bar_y = self.rect.y + self.bar_border_width + self.get_bar_width(self.max_value_range[1] -
-                                                                             self._display_range[1])
+                                                                             self.display_range[1])
         bar_size = self.get_bar_size()
 
         if self.bar_bg_img is not None:
@@ -1251,8 +1252,8 @@ class Bar:
                 stop_width = self.rect.width
                 stop_height = self.bar_border_width
 
-            if (self._display_range[1] > self.max_value_range[0] + self.rect.border and
-                    self._display_range[1] != self.max_value_range[1]):
+            if (self.display_range[1] > self.max_value_range[0] + self.rect.border and
+                    self.display_range[1] != self.max_value_range[1]):
 
                 if self.start_fill_side == Placement.LEFT:
                     max_stop_block = Rect(self.rect.x + self.bar_border_width + bar_size[0],
@@ -1261,24 +1262,24 @@ class Bar:
                 else:
                     max_stop_block = Rect(self.rect.x + self.bar_border_width,
                                           self.rect.y + self.bar_border_width +
-                                          self.get_bar_width(self.max_value_range[1] - self._display_range[1]),
+                                          self.get_bar_width(self.max_value_range[1] - self.display_range[1]),
                                           stop_width, stop_height,
                                           color=self.rect.color)
 
                 max_stop_block.render(display)
 
-            elif (self._display_range[0] > self.max_value_range[0] + self.rect.border and
-                  self._display_range[0] != self.max_value_range[1]):
+            elif (self.display_range[0] > self.max_value_range[0] + self.rect.border and
+                  self.display_range[0] != self.max_value_range[1]):
 
                 if self.start_fill_side == Placement.LEFT:
                     max_stop_block = Rect(self.rect.x + self.bar_border_width +
-                                          self.get_bar_width(self._display_range[0]),
+                                          self.get_bar_width(self.display_range[0]),
                                           self.rect.y + self.bar_border_width, stop_width, stop_height,
                                           color=self.rect.color)
                 else:
                     max_stop_block = Rect(self.rect.x + self.bar_border_width,
                                           self.rect.y + self.bar_border_width +
-                                          self.get_bar_width(self.max_value_range[1] - self._display_range[1]),
+                                          self.get_bar_width(self.max_value_range[1] - self.display_range[1]),
                                           stop_width, stop_height,
                                           color=self.rect.color)
 

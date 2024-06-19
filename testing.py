@@ -105,7 +105,7 @@ def update_window():
 
 def main():
     run = True
-    bar.set_percentage(circle.radius - 30, set_instant=True)
+    bar.set_percentage(circle.radius - 30)
 
     while run:
         Display.tick_frame()
