@@ -1,10 +1,7 @@
 Category: Bar
-FIXME: Set_value bottom line issues
-FIXME: Small bar rect disturbance when not 0%, 50% or 100% filled in bottom-mode (floating start?)
+FIXME: Incomplete bar fill at the bottom / right
 FIXME: Won't reverse bar colored section when reversing line order
 FIXME: Rounded corners
-FIXME: Look into target_range property
-FIXME: Look into set_value func moving_bars update dict
 
 Category: Unverified features
 Test: Full Inputfield class

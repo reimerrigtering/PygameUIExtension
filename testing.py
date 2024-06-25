@@ -18,20 +18,19 @@ text_single = Text('Double line test...', 400, 370, (50, 0, 200), alignment=Plac
 
 text = Text(
     """Testing Text DML:
-- Use 1 & 2     > dec & inc the bar and circle r
-- Use 3 & 4     > dec & inc the bar bottom value
-- Use 5         > empty
-- Use 6         > empty
+- Use 1 & 2     > empty
+- Use 3 & 4     > inc & dec the bar top value
+- Use 5 & 6     > inc & dec the bar bottom value
 - Use 7         > add poly corners
                   and dec ellipse sizes
 - Use 8         > remove poly corners
                   and inc ellipse sizes
-- Use 9         > empty""",
+- Use 9         > info dump""",
     400, 400, (0, 125, 255), alignment=Placement.TOP_LEFT, resize_max_width=250, resize_max_height=250,
     dynamic_multi_line=True, margin=20)
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
-bar = Bar(rectangle, bar_color=(255, 125, 0), bar_closed=True, start_fill_side=Placement.BOTTOM)
+bar = Bar(rectangle, bar_color=(255, 125, 0), bar_closed=True, start_fill_side=Placement.LEFT)
 
 moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0), border=20)
 moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)
@@ -105,7 +104,6 @@ def update_window():
 
 def main():
     run = True
-    bar.set_percentage(circle.radius - 30)
 
     while run:
         Display.tick_frame()
@@ -120,25 +118,25 @@ def main():
                         case pygame.K_ESCAPE:
                             run = False
 
-                        case pygame.K_1:
-                            circle.radius = max(circle.radius - 10, 30)
-                            bar.modify_value(-10)
+                        # case pygame.K_1:
 
-                        case pygame.K_2:
-                            circle.radius = min(circle.radius + 10, 130)
-                            bar.modify_value(10)
+                        # case pygame.K_2:
 
                         case pygame.K_3:
-                            bar.modify_value(-10, set_bottom=True)
-                            print(f'{bar.display_range} -> {bar.target_range}')
+                            bar.modify_value(10)
+                            print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
 
                         case pygame.K_4:
+                            bar.modify_value(-10)
+                            print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
+
+                        case pygame.K_5:
                             bar.modify_value(10, set_bottom=True)
-                            print(f'{bar.display_range} -> {bar.target_range}')
+                            print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
 
-                        # case pygame.K_5:
-
-                        # case pygame.K_6:
+                        case pygame.K_6:
+                            bar.modify_value(-10, set_bottom=True)
+                            print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
 
                         case pygame.K_7:
                             polygon1.insert_point((100, 398), 1)
@@ -155,7 +153,7 @@ def main():
                             ellipse1.height = min(ellipse1.height + 10, 300)
 
                         case pygame.K_9:
-                            print(Button.active_buttons)
+                            print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
 
                         case pygame.K_i:
                             print(f'block_pos: {moving_block.x}, {moving_block.y}')
