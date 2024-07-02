@@ -30,7 +30,7 @@ text = Text(
     dynamic_multi_line=True, margin=20)
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
-bar = Bar(rectangle, bar_color=(255, 125, 0), bar_closed=True, start_fill_side=Placement.BOTTOM)
+bar = Bar(rectangle, bar_color=(255, 125, 0), bar_closed=True, start_fill_side=Placement.LEFT)
 
 moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0), border=20)
 moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)

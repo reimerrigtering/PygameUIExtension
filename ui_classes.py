@@ -1208,11 +1208,11 @@ class Bar:
 
     def get_bar_size(self) -> tuple[int, int]:
         if self.start_fill_side == Placement.LEFT:
-            return (self.get_bar_width(self.display_range[1] - self.display_range[0]),
+            return (self.get_bar_width(self.display_range[1]) - self.get_bar_width(self.display_range[0]),
                     self.rect.height - 2 * self.bar_border_width)
         else:
             return (self.rect.width - 2 * self.bar_border_width,
-                    self.get_bar_height(self.display_range[1] - self.display_range[0]))
+                    self.get_bar_height(self.display_range[1]) - self.get_bar_height(self.display_range[0]))
 
     def render(self, display: pygame.Surface | None = None) -> None:
         display = display if display is not None else Display.window()
