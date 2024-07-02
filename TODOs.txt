@@ -1,5 +1,4 @@
 Category: Bar
-FIXME: Incomplete bar fill at the bottom / right
 FIXME: Vibrating bottom / right while moving top / left
 FIXME: Won't reverse bar colored section when reversing line order
 FIXME: Rounded corners

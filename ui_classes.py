@@ -1199,12 +1199,12 @@ class Bar:
     def get_bar_width(self, value: float) -> int:
         bg_width = self.rect.width - 2 * self.bar_border_width
         ratio_filled = value / self.max_value_range[1]
-        return int(bg_width * ratio_filled)
+        return round(bg_width * ratio_filled)
 
     def get_bar_height(self, value: float) -> int:
         bg_height = self.rect.height - 2 * self.bar_border_width
         ratio_filled = value / self.max_value_range[1]
-        return int(bg_height * ratio_filled)
+        return round(bg_height * ratio_filled)
 
     def get_bar_size(self) -> tuple[int, int]:
         if self.start_fill_side == Placement.LEFT:
