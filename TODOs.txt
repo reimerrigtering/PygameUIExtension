@@ -1,7 +1,3 @@
-Category: Bar
-FIXME: Won't reverse bar colored section when reversing line order
-FIXME: Rounded corners
-
 Category: Unverified features
 Test: Full Inputfield class
 Test: Full Image class
@@ -17,3 +13,6 @@ Test: Button with multiple callables and multiple default callable arguments
 
 Test: Image height and width attribute changes
 Test: Alpha colors used for DiplayObjects
+
+Category: 2.0.2
+TODO: Allow rounded corners for Bar class objects
