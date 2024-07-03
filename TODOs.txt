@@ -1,5 +1,4 @@
 Category: Unverified features
-Test: Full Image class
 Test: Full Scene class
 
 Test: ObjectAnimation SCALE Action

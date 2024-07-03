@@ -696,7 +696,7 @@ class InputField:
 
 @dataclass
 class Image:
-    assests_folder_path: str = field(default=None, kw_only=True)
+    assests_folder_path: ClassVar[str | None] = None
     image: pygame.Surface = field(default=None, kw_only=True)
     border_rect: Rect = field(default=None, kw_only=True)
 
@@ -706,7 +706,6 @@ class Image:
     resize_to: Sequence[int, int] | None = None
 
     alpha: T_COLOR | None = None
-    hide: bool = False
     direct_path: bool = False
 
     border: int = 0
@@ -775,13 +774,12 @@ class Image:
         if display is None:
             raise ValueError('Display argument missing')
 
-        if not self.hide:
-            display.blit(self.image, (self.x, self.y))
-            if self.border > 0:
-                self.border_rect.render(display)
+        display.blit(self.image, (self.x, self.y))
+        if self.border > 0:
+            self.border_rect.render(display)
 
     def __repr__(self) -> str:
-        return f'pos: ({self.x}, {self.y}) - hidden: {self.hide} - src: {self.path}'
+        return f'pos: ({self.x}, {self.y}) - src: {self.path}'
 
 
 class ObjectAnimation:

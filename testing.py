@@ -1,6 +1,6 @@
 import pygame
 from ui_classes import (Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa, Button,
-                        InputField)
+                        InputField, Image)
 
 
 display_window = Display((800, 800), 'testing')
@@ -63,6 +63,8 @@ no_block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 1
 command_field = InputField(Rect(50, 700, 500, 60, color=(200, 200, 200), corner_radius_all=20, border=5),
                            _empty_text=Text('command here', color=(150, 150, 150)), rect_active_color=(0, 150, 0))
 
+testing_img = Image('test_img.png', 550, 50, (200, 200), border=5)
+
 
 def move_block() -> None:
     global moving_block_seq_pos
@@ -104,6 +106,8 @@ def update_window():
     move_block_button.render()
 
     command_field.render()
+
+    testing_img.render()
 
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
