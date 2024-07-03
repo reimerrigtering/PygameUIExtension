@@ -1,5 +1,6 @@
 import pygame
-from ui_classes import Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa, Button
+from ui_classes import (Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa, Button,
+                        InputField)
 
 
 display_window = Display((800, 800), 'testing')
@@ -57,6 +58,9 @@ block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 20, 'time': 10}
 no_block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 10})],
                      animation_objects=[moving_block])
 
+command_field = InputField(Rect(50, 700, 500, 60, color=(200, 200, 200), corner_radius_all=20, border=5),
+                           _empty_text=Text('command here', color=(150, 150, 150)), rect_active_color=(0, 150, 0))
+
 
 def move_block() -> None:
     global moving_block_seq_pos
@@ -97,6 +101,8 @@ def update_window():
     moving_block.render()
     move_block_button.render()
 
+    command_field.render()
+
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
     oa.update_animations()
@@ -115,10 +121,11 @@ def main():
                     run = False
 
                 case pygame.KEYDOWN:
-                    match event.key:
-                        case pygame.K_ESCAPE:
-                            run = False
+                    match InputField.active_input.process_input(event):
+                        case 'block':
+                            move_block()
 
+                    match event.key:
                         # case pygame.K_1:
 
                         # case pygame.K_2:
@@ -154,13 +161,14 @@ def main():
                             ellipse1.height = min(ellipse1.height + 10, 300)
 
                         case pygame.K_9:
-                            print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
+                            print(f'{bar.percentage}')
 
                         case pygame.K_i:
                             print(f'block_pos: {moving_block.x}, {moving_block.y}')
 
                 case pygame.MOUSEBUTTONDOWN:
                     Button.check_all_collisions()
+                    InputField.check_all_collisions()
 
         update_window()
 

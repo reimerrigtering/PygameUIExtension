@@ -1,5 +1,4 @@
 Category: Unverified features
-Test: Full Inputfield class
 Test: Full Image class
 Test: Full Scene class
 
@@ -7,12 +6,19 @@ Test: ObjectAnimation SCALE Action
 Test: ObjectAnimation CHANGE_OBJECT Action
 Test: ObjectAnimation trace attribute
 
-Test: Button object text operations
 Test: Button object image operations
 Test: Button with multiple callables and multiple default callable arguments
 
 Test: Image height and width attribute changes
 Test: Alpha colors used for DiplayObjects
 
+Test: Bar text functionality
+Test: Bar bg img functionality
+Test: Bar modify percentage and set percantage
+
 Category: 2.0.2
-TODO: Allow rounded corners for Bar class objects
+TODO: Bar           - Allow rounded corners for Bar class objects
+TODO: Combination   - Combination objects
+TODO: Animation     - ROTATE action
+TODO: Animation     - ROTATE_TO action
+TODO: Animation     - Improve attribute catch return text

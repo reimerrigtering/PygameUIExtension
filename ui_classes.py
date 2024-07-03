@@ -350,9 +350,7 @@ class Ellipse(Shape):
 
 @dataclass
 class Text:
-    _text: str = field(default='', kw_only=True)
-
-    text: str
+    _text: str = ''
     x: int = 0
     y: int = 0
     color: T_COLOR = (0, 0, 0)
@@ -483,7 +481,8 @@ class Text:
 
 @dataclass
 class InputField:
-    active_input: ClassVar[None] = None
+    active_input_fields: ClassVar[list['InputField', ...]] = []
+    active_input: ClassVar[None or 'InputField'] = None
     rect_not_active_color: T_COLOR = field(default=None, kw_only=True)
 
     input_rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
@@ -491,7 +490,7 @@ class InputField:
 
     _text: Text | None = None
     _empty_text: Text | None = None
-    replace_text_char: str | None = True
+    replace_text_char: str | None = False
     _hidden_text: str = ''
 
     character_max: int | None = None
@@ -516,6 +515,23 @@ class InputField:
 
         if self.select_on_init:
             InputField.active_input = self
+
+        if self._text is None:
+            self._text = Text(x=self.input_rect.x, y=self.input_rect.y, resize_max_width=self.input_rect.width,
+                              resize_max_height=self.input_rect.height, font='monospace')
+        if self._empty_text is None:
+            self._empty_text = Text(x=self.input_rect.x, y=self.input_rect.y, resize_max_width=self.input_rect.width,
+                                    resize_max_height=self.input_rect.height, font='monospace')
+
+        if self._empty_text.resize_max_width is None:
+            self._empty_text.resize_max_width = self.input_rect.width
+        if self._empty_text.resize_max_height is None:
+            self._empty_text.resize_max_height = self.input_rect.height
+
+        self.text.auto_size_font()
+        self.empty_text.auto_size_font()
+
+        InputField.active_input_fields.append(self)
 
     @property
     def text_str(self) -> str:
@@ -551,24 +567,24 @@ class InputField:
             return self.text_str
 
     @property
-    def empty_text(self) -> str:
-        return self._empty_text.text
+    def empty_text(self) -> Text:
+        return self._empty_text
 
     @empty_text.setter
     def empty_text(self, value) -> None:
-        if isinstance(value, str):
-            self._empty_text.text = value
+        if isinstance(value, Text):
+            self._empty_text = value
         else:
             raise NotImplemented
 
     @property
-    def empty_text_raw(self) -> Text:
-        return self._empty_text
+    def empty_text_str(self) -> str:
+        return self._empty_text.text
 
-    @empty_text_raw.setter
-    def empty_text_raw(self, value) -> None:
-        if isinstance(value, Text):
-            self._empty_text = value
+    @empty_text_str.setter
+    def empty_text_str(self, value) -> None:
+        if isinstance(value, str):
+            self._empty_text.text = value
         else:
             raise NotImplemented
 
@@ -597,10 +613,10 @@ class InputField:
 
         self.input_rect.render(display)
 
-        text_x, text_y = self.input_rect.x, self.input_rect.y + self.input_rect.height // 2
+        text_x, text_y = self.input_rect.x, self.input_rect.y
         if self.text_str == '' and not self == InputField.active_input:
-            self.empty_text_raw.x, self.empty_text_raw.y = text_x, text_y
-            self.empty_text_raw.render(display)
+            self.empty_text.x, self.empty_text.y = text_x, text_y
+            self.empty_text.render(display)
         else:
             self.text.x, self.text.y = text_x, text_y
             self.text.render(display)
@@ -622,34 +638,55 @@ class InputField:
 
     @classmethod
     def process_input(cls, event) -> None | str:
+        if cls.active_input is None:
+            return
+        active_field = cls.active_input
+
         if event.key in (pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE):
-            if event.key == pygame.K_ESCAPE and cls.active_input.exit_esc:
+            if event.key == pygame.K_ESCAPE and active_field.exit_esc:
                 cls.deactivate()
                 return
 
             elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                 return_text = None
 
-                if cls.active_input.submit_return:
-                    return_text = cls.active_input.text_hidden
+                if active_field.submit_return:
+                    return_text = active_field.text_hidden
 
-                if cls.active_input.clear_on_submit:
-                    cls.active_input.text_str = ''
+                if active_field.clear_on_submit:
+                    active_field.text_str = ''
 
                 return return_text
 
-            elif event.key == pygame.K_BACKSPACE and cls.active_input.can_del:
-                if len(cls.active_input.text_str) >= 1:
-                    cls.active_input.text_str = cls.active_input.text_str[:-1]
+            elif event.key == pygame.K_BACKSPACE and active_field.can_del:
+                if len(active_field.text_str) >= 1:
+                    active_field.text_str = active_field.text_str[:-1]
                 return
 
-        elif len(cls.active_input.text_str) < cls.active_input.character_max and \
-                cls.active_input.is_allowed(event.unicode):
-            cls.active_input.text_str += event.unicode
+        elif active_field.is_allowed(event.unicode):
+            if active_field.character_max is not None and len(active_field.text_str) < active_field.character_max:
+                active_field.text_str += event.unicode
+            elif active_field.character_max is None:
+                active_field.text_str += event.unicode
             return
 
         print(f'Input processing is not implemented for {event.unicode}')
         return
+
+    def check_collision(self, event_pos: tuple[int, int] | None = None) -> bool:
+        event_pos = pygame.mouse.get_pos() if event_pos is None else event_pos
+
+        if self.input_rect.rect.collidepoint(event_pos):
+            InputField.activate(self)
+            return True
+        return False
+
+    @classmethod
+    def check_all_collisions(cls):
+        mouse_position = pygame.mouse.get_pos()
+
+        for input_field in cls.active_input_fields:
+            input_field.check_collision(mouse_position)
 
     def __repr__(self) -> str:
         return f'pos: ({self.input_rect.x}, {self.input_rect.y}) - text: {self.text_str}'
@@ -900,7 +937,6 @@ class ObjectAnimation:
 
     def stop(self):
         if self in ObjectAnimation.running_animations:
-            # ObjectAnimation.running_animations.remove(self)
             ObjectAnimation.running_animations[ObjectAnimation.running_animations.index(self)] = None
 
         if self.stop_reset:
@@ -1132,7 +1168,6 @@ class Bar:
     starting_frame: int = Frame.get()
 
     def __post_init__(self) -> None:
-        # Bar._bar_id_counter += 1
         Bar.active_bars.append(self)
 
         if isinstance(self.rect, Sequence):
@@ -1177,6 +1212,10 @@ class Bar:
             self._text = value
         else:
             raise NotImplemented
+
+    @property
+    def percentage(self) -> tuple[float, ...]:
+        return tuple(round(self.goal_value_range[i] / self.max_value_range[1] * 100, 1) for i in range(2))
 
     def set_value(self, value: float, set_bottom: bool = False) -> None:
         if self.allow_inverse:
