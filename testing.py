@@ -1,6 +1,6 @@
 import pygame
 from ui_classes import (Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa, Button,
-                        InputField, Image)
+                        InputField, Image, Scene)
 
 
 display_window = Display((800, 800), 'testing')
@@ -28,7 +28,8 @@ text = Text(
                   and inc ellipse sizes
 - Use 9         > info dump
 
-- Use 'block'   > move square""",
+- Use 'block'   > move square [if in active scene]
+- Use 'scene #  > switch to scene #'""",
     400, 400, (0, 125, 255), alignment=Placement.TOP_LEFT, resize_max_width=250, resize_max_height=250,
     dynamic_multi_line=True, margin=20)
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
@@ -87,27 +88,17 @@ def move_block() -> None:
 move_block_button = Button(Rect(150, 500, 100, 50, color=(200, 200, 200)), _text=Text('Move Block', margin=3),
                            button_type='push', call_on_press=move_block)
 
+test_scene_1 = Scene('test1', (255, 255, 255), [circle, polygon1, polygon2, ellipse1, ellipse2,
+                                                bar])
+test_scene_2 = Scene('test2', (255, 255, 255), [moving_block, moving_block_sqr,
+                                                move_block_button, testing_img])
+Scene.universal_objects = [text_surround_rect, text, text_single, command_field]
+
+test_scene_1.activate()
+
 
 def update_window():
-    display_window.fill((255, 255, 255))
-    circle.render()
-    polygon1.render()
-    polygon2.render()
-    ellipse1.render()
-    ellipse2.render()
-    bar.render()
-
-    text_surround_rect.render()
-    text.render()
-    text_single.render()
-
-    moving_block_sqr.render()
-    moving_block.render()
-    move_block_button.render()
-
-    command_field.render()
-
-    testing_img.render()
+    Scene.active_scenes[0].render()
 
     Button.release_push_buttons()
     Bar.process_all_bar_movement()
@@ -127,9 +118,17 @@ def main():
                     run = False
 
                 case pygame.KEYDOWN:
-                    match InputField.active_input.process_input(event):
-                        case 'block':
-                            move_block()
+                    if InputField.active_input is not None:
+                        match InputField.active_input.process_input(event):
+                            case 'block':
+                                if Scene.active_scenes[0] == test_scene_2:
+                                    move_block()
+
+                            case 'scene 1':
+                                test_scene_1.activate()
+
+                            case 'scene 2':
+                                test_scene_2.activate()
 
                     match event.key:
                         # case pygame.K_1:

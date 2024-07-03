@@ -1349,7 +1349,7 @@ class Bar:
 
 
 class Scene:
-    current_scene: MutableSequence | None = []
+    active_scenes: MutableSequence | None = []
     all_scenes: MutableSequence | None = []
     universal_objects: list | None = []
 
@@ -1375,16 +1375,16 @@ class Scene:
 
     def activate(self, deactivate_all: bool = True) -> None:
         if deactivate_all:
-            Scene.current_scene = [self]
+            Scene.active_scenes = [self]
         else:
-            Scene.current_scene.insert(-1, self)
+            Scene.active_scenes.insert(-1, self)
 
     def deactivate(self, deactivate_all: bool = False) -> None:
         if deactivate_all:
-            Scene.current_scene = []
+            Scene.active_scenes = []
         else:
-            if self in Scene.current_scene:
-                Scene.current_scene.remove(self)
+            if self in Scene.active_scenes:
+                Scene.active_scenes.remove(self)
 
     def render(self, display: pygame.Surface | None = None) -> None:
         display = display if display is not None else Display.window()
