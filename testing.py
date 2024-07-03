@@ -26,7 +26,9 @@ text = Text(
                   and dec ellipse sizes
 - Use 8         > remove poly corners
                   and inc ellipse sizes
-- Use 9         > info dump""",
+- Use 9         > info dump
+
+- Use 'block'   > move square""",
     400, 400, (0, 125, 255), alignment=Placement.TOP_LEFT, resize_max_width=250, resize_max_height=250,
     dynamic_multi_line=True, margin=20)
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))

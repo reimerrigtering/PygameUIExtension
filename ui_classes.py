@@ -679,7 +679,9 @@ class InputField:
         if self.input_rect.rect.collidepoint(event_pos):
             InputField.activate(self)
             return True
-        return False
+        else:
+            if InputField.active_input == self:
+                InputField.deactivate()
 
     @classmethod
     def check_all_collisions(cls):
