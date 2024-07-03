@@ -1,6 +1,4 @@
 Category: Unverified features
-Test: Full Scene class
-
 Test: ObjectAnimation SCALE Action
 Test: ObjectAnimation CHANGE_OBJECT Action
 Test: ObjectAnimation trace attribute
