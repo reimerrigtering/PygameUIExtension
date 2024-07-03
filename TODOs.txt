@@ -6,7 +6,6 @@ Test: ObjectAnimation trace attribute
 Test: Button object image operations
 Test: Button with multiple callables and multiple default callable arguments
 
-Test: Image height and width attribute changes
 Test: Alpha colors used for DiplayObjects
 
 Test: Bar text functionality
