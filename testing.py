@@ -61,7 +61,7 @@ block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 20, 'time': 10}
 no_block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 10})],
                      animation_objects=[moving_block])
 
-scale_up_block = oa([(oa.Action.SCALE, {'width': move_amount})],
+scale_up_block = oa([(oa.Action.SCALE, {'width': move_amount, 'time': 10})],
                     animation_objects=[moving_block])
 scale_back_block = oa([(oa.Action.SCALE, {'width': -move_amount, 'time': 10})],
                       animation_objects=[moving_block])
@@ -105,7 +105,7 @@ print_words_button = Button(Rect(100, 550, 100, 100, color=(200, 200, 200)), _te
 
 test_scene_1 = Scene('test1', (255, 255, 255), [circle, polygon1, polygon2, ellipse1, ellipse2,
                                                 bar, print_words_button])
-test_scene_2 = Scene('test2', (255, 255, 255), [moving_block, moving_block_sqr,
+test_scene_2 = Scene('test2', (255, 255, 255), [moving_block_sqr, moving_block,
                                                 move_block_button])
 Scene.universal_objects = [text_surround_rect, text, text_single, command_field]
 
@@ -187,7 +187,7 @@ def main():
                             ellipse1.height = min(ellipse1.height + 10, 300)
 
                         case pygame.K_9:
-                            print(f'{bar.percentage}')
+                            print(f'{moving_block.width}')
 
                         case pygame.K_i:
                             print(f'block_pos: {moving_block.x}, {moving_block.y}')

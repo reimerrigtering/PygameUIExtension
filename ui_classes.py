@@ -804,15 +804,14 @@ class ObjectAnimation:
         MOVE_TO: int = 3
         CHANGE_CORNER_RADIUS: int = 4
         CHANGE_CORNER_RADIUS_TO: int = 5
-        CHANGE_OBJECT: int = 6
-        SET_COLOR_TO: int = 7
-        CHANGE_BORDER_WIDTH_TO: int = 8
+        SET_COLOR_TO: int = 6
+        CHANGE_BORDER_WIDTH_TO: int = 7
 
         @classmethod
-        def execute(cls, objects, index, start_action_time, action: int = None, **kwargs):
+        def execute(cls, objects, cur_object_index, start_action_time, action: int = None, **kwargs):
             wait_time = 0
             object_index = None
-            cur_object = objects[index]
+            cur_object = objects[cur_object_index]
 
             if action is None:
                 return wait_time, object_index
@@ -891,17 +890,6 @@ class ObjectAnimation:
                         else:
                             raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS_TO action')
 
-                    case cls.CHANGE_OBJECT:
-                        try:
-                            object_index = kwargs['index']
-
-                            if cur_object.trace:
-                                objects[object_index].width = cur_object.width
-                                objects[object_index].height = cur_object.height
-
-                        except KeyError:
-                            raise KeyError('index key should be given to use CHANGE_OBJECT action')
-
                     case cls.SET_COLOR_TO:
                         if 'color' in kwargs.keys():
                             cur_object.color = kwargs['color']
@@ -927,11 +915,10 @@ class ObjectAnimation:
     running_animations: MutableSequence = []
 
     def __init__(self, action_sequence: MutableSequence[Sequence[int, dict[str, int]]],
-                 animation_objects: Sequence, trace_objects: bool = True, stop_reset: bool = True):
+                 animation_objects: Sequence, stop_reset: bool = True):
         self.action_sequence = action_sequence
         self.animation_objects = animation_objects
         self._start_object_setting = animation_objects[:]
-        self.trace = trace_objects
         self.started_move = False
         self.action_index = 0
         self.object_index = 0
@@ -982,7 +969,7 @@ class ObjectAnimation:
         if Frame.get() >= self.next_frame:
             self.start_action_frame = Frame.get()
             self.next_frame = self.start_action_frame + wait_time - 1
-            if self.started_move:
+            if self.started_move or wait_time <= 0:
                 self.action_index += 1
                 self.started_move = False
             else:
