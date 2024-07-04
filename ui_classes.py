@@ -465,7 +465,7 @@ class Text:
                 case Placement.BOTTOM_OUT:
                     text_y = self.y + self.resize_max_height + text_render.get_height() + self.margin // 2
                 case _:
-                    return NotImplemented("Unusable text alignment")
+                    raise NotImplementedError("Unusable text alignment")
 
             if x_align not in (Placement.LEFT, Placement.LEFT_OUT) and self.resize_max_width is None:
                 x_align = Placement.LEFT
@@ -482,7 +482,7 @@ class Text:
                 case Placement.RIGHT_OUT:
                     text_x = self.x + self.resize_max_width + text_render.get_width() + self.margin // 2
                 case _:
-                    raise NotImplemented("Unusable text alignment")
+                    raise NotImplementedError("Unusable text alignment")
 
             display.blit(text_render, (text_x, text_y))
 
