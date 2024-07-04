@@ -1,15 +1,7 @@
-Category: Bugs
-FIXME: Bar img bg disappearence
-FIXME: Bar img reverse not visible
-
 Category: Unverified features
 Test: ObjectAnimation SCALE Action
 Test: ObjectAnimation CHANGE_OBJECT Action
 Test: ObjectAnimation trace attribute
-
-Test: Bar text functionality
-Test: Bar bg img functionality
-Test: Bar modify percentage and set percantage
 
 Category: 2.0.2
 TODO: Bar           - Allow rounded corners for Bar class objects

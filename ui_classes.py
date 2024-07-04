@@ -46,7 +46,10 @@ class Placement:
             raise ValueError('Not a valid Placement')
 
         if not cls.double_placement(placement):
-            return placement
+            if placement in (cls.TOP, cls.BOTTOM, cls.TOP_OUT, cls.BOTTOM_OUT):
+                return cls.CENTER, placement
+            else:
+                return placement, cls.CENTER
         else:
             if placement == cls.CENTER:
                 return cls.CENTER, cls.CENTER
@@ -445,23 +448,27 @@ class Text:
 
         else:
             text_render = self._text_font_processed.render(self.text, True, self.color)
+            x_align, y_align = Placement.split(self.alignment)
 
-            text_y = self.y - text_render.get_height() // 2
+            if y_align not in (Placement.TOP, Placement.TOP_OUT) and self.resize_max_height is None:
+                y_align = Placement.TOP
 
-            if Placement.double_placement(self.alignment):
-                x_align, y_align = Placement.split(self.alignment)
+            match y_align:
+                case Placement.CENTER:
+                    text_y = self.y + (self.resize_max_height - text_render.get_height()) // 2
+                case Placement.TOP:
+                    text_y = self.y + self.margin // 2
+                case Placement.BOTTOM:
+                    text_y = self.y + self.resize_max_height - text_render.get_height() - self.margin // 2
+                case Placement.TOP_OUT:
+                    text_y = self.y - text_render.get_height() - self.margin // 2
+                case Placement.BOTTOM_OUT:
+                    text_y = self.y + self.resize_max_height + text_render.get_height() + self.margin // 2
+                case _:
+                    return NotImplemented("Unusable text alignment")
 
-                match y_align:
-                    case Placement.CENTER:
-                        text_y = self.y + (self.resize_max_height - text_render.get_height()) // 2
-                    case Placement.TOP:
-                        text_y = self.y + self.margin // 2
-                    case Placement.BOTTOM:
-                        text_y = self.y - (text_render.get_height() - self.margin) // 2
-                    case _:
-                        return NotImplemented("Unusable text alignment")
-            else:
-                x_align = self.alignment
+            if x_align not in (Placement.LEFT, Placement.LEFT_OUT) and self.resize_max_width is None:
+                x_align = Placement.LEFT
 
             match x_align:
                 case Placement.CENTER:
@@ -469,9 +476,13 @@ class Text:
                 case Placement.LEFT:
                     text_x = self.x + self.margin // 2
                 case Placement.RIGHT:
-                    text_x = self.x - (text_render.get_width() - self.margin) // 2
+                    text_x = self.x + self.resize_max_width - text_render.get_width() - self.margin // 2
+                case Placement.LEFT_OUT:
+                    text_x = self.x - text_render.get_width() - self.margin // 2
+                case Placement.RIGHT_OUT:
+                    text_x = self.x + self.resize_max_width + text_render.get_width() + self.margin // 2
                 case _:
-                    return NotImplemented("Unusable text alignment")
+                    raise NotImplemented("Unusable text alignment")
 
             display.blit(text_render, (text_x, text_y))
 
@@ -1157,6 +1168,7 @@ class Bar:
 
     bar_color: T_COLOR = None
     _text: Text | None = None
+    fit_text: bool = True
     bar_bg_img: Image | None = None
 
     bar_closed: bool = False
@@ -1189,8 +1201,18 @@ class Bar:
         if self.start_fill_side not in (Placement.LEFT, Placement.BOTTOM):
             self.start_fill_side = Placement.LEFT
 
+        if self.text is not None:
+            self.text.x = self.rect.x
+            self.text.y = self.rect.y
+            self.text.resize_max_width = self.rect.width
+            self.text.resize_max_height = self.rect.height
+            if self.fit_text:
+                self.text.auto_size_font()
+
         if self.bar_bg_img is not None:
             self.bar_bg_img.x, self.bar_bg_img.y = self.rect.x + self.rect.border, self.rect.y + self.rect.border
+            self.bar_bg_img.resize((self.rect.width - 2 * self.bar_border_width,
+                                    self.rect.height - 2 * self.bar_border_width))
 
     @property
     def text_str(self) -> str:
@@ -1284,19 +1306,15 @@ class Bar:
         bar_size = self.get_bar_size()
 
         if self.bar_bg_img is not None:
-            self.bar_bg_img.x = bar_x
-            self.bar_bg_img.y = bar_y
-            self.bar_bg_img.resize(bar_size)
-
             self.bar_bg_img.render(display)
-        else:
-            color = self.bar_color
-            if self.display_range[0] > self.display_range[1] and self.bar_inverse_color is not None:
-                color = self.bar_inverse_color
 
-            bar_rect = Rect(bar_x, bar_y, bar_size[0], bar_size[1], color=color)
+        color = self.bar_color
+        if self.display_range[0] > self.display_range[1] and self.bar_inverse_color is not None:
+            color = self.bar_inverse_color
 
-            bar_rect.render(display)
+        bar_rect = Rect(bar_x, bar_y, bar_size[0], bar_size[1], color=color)
+
+        bar_rect.render(display)
 
         if self.bar_closed:
             if self.start_fill_side == Placement.LEFT:

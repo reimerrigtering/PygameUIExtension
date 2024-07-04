@@ -14,8 +14,8 @@ polygon2 = Polygon([(100, 428), (120, 440), (120, 460), (100, 472), (80, 460), (
 ellipse1 = Ellipse(300, 50, 100, 200, color=(150, 0, 150), border=10)
 ellipse2 = Ellipse(275, 75, 200, 100, color=(0, 150, 150), border=10)
 
-text_single = Text('Double line test...', 400, 370, (50, 0, 200), alignment=Placement.LEFT, resize_max_width=250,
-                   resize_max_height=100)
+text_single = Text('Double line test...', 400, 350, (50, 0, 200), alignment=Placement.TOP, resize_max_width=250,
+                   resize_max_height=50)
 
 text = Text(
     """Testing Text DML:
@@ -35,7 +35,7 @@ text = Text(
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
 bar = Bar(rectangle, bar_color=(255, 125, 0), bar_inverse_color=(255, 0, 0), bar_closed=True,
-          start_fill_side=Placement.LEFT, bar_bg_img=Image('test_img.png'))
+          start_fill_side=Placement.LEFT, _text=Text('Test', font_size=30, alignment=Placement.TOP_OUT), fit_text=False)
 
 moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0), border=20)
 moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)
@@ -146,11 +146,11 @@ def main():
                         # case pygame.K_2:
 
                         case pygame.K_3:
-                            bar.modify_value(10)
+                            bar.modify_percentage(10)
                             print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
 
                         case pygame.K_4:
-                            bar.modify_value(-10)
+                            bar.modify_percentage(-10)
                             print(f'{bar.display_range} -> {bar.goal_value_range} / {bar.max_value_range}')
 
                         case pygame.K_5:
