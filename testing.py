@@ -61,6 +61,11 @@ block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 20, 'time': 10}
 no_block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 10})],
                      animation_objects=[moving_block])
 
+scale_up_block = oa([(oa.Action.SCALE, {'width': move_amount})],
+                    animation_objects=[moving_block])
+scale_back_block = oa([(oa.Action.SCALE, {'width': -move_amount, 'time': 10})],
+                      animation_objects=[moving_block])
+
 command_field = InputField(Rect(50, 700, 500, 60, color=(200, 200, 200), corner_radius_all=20, border=5),
                            _empty_text=Text('command here', color=(150, 150, 150)), rect_active_color=(0, 150, 0))
 
@@ -133,6 +138,12 @@ def main():
                             case 'block':
                                 if Scene.active_scenes[0] == test_scene_2:
                                     move_block()
+
+                            case 'scale up':
+                                scale_up_block.start()
+
+                            case 'scale down':
+                                scale_back_block.start()
 
                             case 'scene 1':
                                 test_scene_1.activate()

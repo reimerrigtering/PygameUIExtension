@@ -1,5 +1,7 @@
+Category: Bugs
+FIXME: ObjectAnimation SCALE Action without time attr sizes incorrectly
+
 Category: Unverified features
-Test: ObjectAnimation SCALE Action
 Test: ObjectAnimation CHANGE_OBJECT Action
 Test: ObjectAnimation trace attribute
 
