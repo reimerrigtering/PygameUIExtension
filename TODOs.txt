@@ -1,12 +1,11 @@
+Category: Bugs
+FIXME: Bar img bg disappearence
+FIXME: Bar img reverse not visible
+
 Category: Unverified features
 Test: ObjectAnimation SCALE Action
 Test: ObjectAnimation CHANGE_OBJECT Action
 Test: ObjectAnimation trace attribute
-
-Test: Button object image operations
-Test: Button with multiple callables and multiple default callable arguments
-
-Test: Alpha colors used for DiplayObjects
 
 Test: Bar text functionality
 Test: Bar bg img functionality
@@ -18,3 +17,7 @@ TODO: Combination   - Combination objects
 TODO: Animation     - ROTATE action
 TODO: Animation     - ROTATE_TO action
 TODO: Animation     - Improve attribute catch return text
+TODO: Scene         - Multiple active scenes rendering
+
+Category: 2.1.0
+TODO: Allow alpha color effect to all display objects

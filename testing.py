@@ -35,7 +35,7 @@ text = Text(
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
 bar = Bar(rectangle, bar_color=(255, 125, 0), bar_inverse_color=(255, 0, 0), bar_closed=True,
-          start_fill_side=Placement.LEFT)
+          start_fill_side=Placement.LEFT, bar_bg_img=Image('test_img.png'))
 
 moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0), border=20)
 moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)
@@ -64,8 +64,6 @@ no_block_border = oa([(oa.Action.CHANGE_BORDER_WIDTH_TO, {'border': 5, 'time': 1
 command_field = InputField(Rect(50, 700, 500, 60, color=(200, 200, 200), corner_radius_all=20, border=5),
                            _empty_text=Text('command here', color=(150, 150, 150)), rect_active_color=(0, 150, 0))
 
-testing_img = Image('test_img.png', 550, 50, (200, 200), border=5)
-
 
 def move_block() -> None:
     global moving_block_seq_pos
@@ -85,13 +83,25 @@ def move_block() -> None:
         moving_block_seq_pos = 0
 
 
-move_block_button = Button(Rect(150, 500, 100, 50, color=(200, 200, 200)), _text=Text('Move Block', margin=3),
-                           button_type='push', call_on_press=move_block)
+move_block_button = Button(Rect(150, 500, 100, 50, color=(0, 0, 0)),
+                           _text=Text('Move Block', margin=3, color=(255, 0, 0)),
+                           button_type='push', call_on_press=move_block, img=Image('test_img.png', resize_to=(40, 40)),
+                           img_fill_button=False, img_alignment=Placement.LEFT, img_margin=4)
+
+
+def test_print(string: str) -> None:
+    print(string)
+
+
+print_words_button = Button(Rect(100, 550, 100, 100, color=(200, 200, 200)), _text=Text('Print Words', margin=3),
+                            button_type='push', call_on_press=[test_print, test_print],
+                            call_on_press_kwargs=[{'string': 'testing'}, {'string': 'multiple default button kwargs'}])
+
 
 test_scene_1 = Scene('test1', (255, 255, 255), [circle, polygon1, polygon2, ellipse1, ellipse2,
-                                                bar])
+                                                bar, print_words_button])
 test_scene_2 = Scene('test2', (255, 255, 255), [moving_block, moving_block_sqr,
-                                                move_block_button, testing_img])
+                                                move_block_button])
 Scene.universal_objects = [text_surround_rect, text, text_single, command_field]
 
 test_scene_1.activate()

@@ -1035,6 +1035,7 @@ class Button:
 
         if self.img is not None:
             if self.img_fill_button:
+                self.img.x, self.img.y = self.rect.x + self.img_margin, self.rect.y + self.img_margin
                 self.img.resize((self.rect.width - 2 * self.img_margin, self.rect.height - 2 * self.img_margin))
 
             else:
@@ -1048,9 +1049,9 @@ class Button:
                 if self.img_alignment in (Placement.TOP, Placement.TOP_LEFT, Placement.TOP_RIGHT):
                     self.img.y = self.rect.y + self.img_margin
                 elif self.img_alignment in (Placement.BOTTOM, Placement.BOTTOM_LEFT, Placement.BOTTOM_RIGHT):
-                    self.img.y = self.rect.y + self.rect.width - self.img.width - self.img_margin
+                    self.img.y = self.rect.y + self.rect.height - self.img.height - self.img_margin
                 else:
-                    self.img_y = self.rect.y + (self.rect.width - self.img.width) // 2
+                    self.img.y = self.rect.y + (self.rect.height - self.img.height) // 2
 
         Button.active_buttons.append(self)
 
@@ -1090,7 +1091,7 @@ class Button:
                         else:
                             callable_kwargs = {}
 
-                        if len(kwargs_list) > index:
+                        if kwargs_list is not None and len(kwargs_list) > index:
                             callable_kwargs.update(**kwargs_list[index])
 
                         func(**callable_kwargs)
