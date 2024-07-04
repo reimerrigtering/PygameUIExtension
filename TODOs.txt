@@ -1,37 +1,12 @@
-Category: ObjectAnimation
-TODO: Check Transition for overlap
-TODO: Missing attribute catch for objects
-TODO: Fix rounding issues after transform_factor multiplication results in float endpoint
-TODO: Fix index error at operations end
-TODO: Fix opposite direction operation conflict
+Category: 2.0.2
+TODO: Bar           - Allow rounded corners for Bar class objects
+TODO: Combination   - Combination objects
+TODO: Animation     - ROTATE action
+TODO: Animation     - ROTATE_TO action
+TODO: Animation     - Improve attribute catch return text
+TODO: Scene         - Multiple active scenes rendering
 
-Category: Transition
-TODO: Determine if class existence is totally redundand
-
-Category: Button
-FIXME: Text auto formatting alignments
-FIXME: Classwide button collision checks for push buttons
-
-Category: Bar
-FIXME: Set_value bottom line issues
-FIXME: Small bar rect disturbance when not 0%, 50% or 100% filled in bottom-mode (floating start?)
-FIXME: Won't reverse bar colored section when reversing line order
-FIXME: Rounded corners
-FIXME: Look into target_range property
-FIXME: Look into set_value func moving_bars update dict
-
-Category: Unverified features
-Test: Full Inputfield class
-Test: Full Image class
-Test: Full Scene class
-
-Test: ObjectAnimation Scale operation
-Test: ObjectAnimation ChangeObject operation
-Test: ObjectAnimation trace attribute
-Test: ObjectAnimation ChangeRadius and ChangeRadiusTo operations
-
-Test: Button object text operations
-Test: Button object image operations
-
-Test: Image height and width attribute changes
-Test: Alpha colors used for DiplayObjects
+Category: 2.1.0
+TODO: Allow alpha color effect to all display objects
+TODO: ObjectAnimation CHANGE_OBJECT Action
+TODO: ObjectAnimation trace attribute
