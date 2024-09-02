@@ -1282,8 +1282,6 @@ class Bar:
             raise ValueError('Display argument missing')
 
         bar_display = display
-        corner_rect_cuts = None
-
         self.rect.render(display)
 
         if self.start_fill_side == Placement.LEFT:
@@ -1309,9 +1307,18 @@ class Bar:
                                                self.rect.height - 2 * self.bar_border_width))
             corner_rect_cuts.set_colorkey((255, 255, 255))
             corner_rect_cuts.fill(trans_color)
-            fill_rect = Rect(0, 0, self.rect.width - 2 * self.bar_border_width,
-                             self.rect.height - 2 * self.bar_border_width, self.rect.corner_radius_all,
-                             self.rect.corner_radius_specific, color=(255, 255, 255))
+            if self.rect.corner_radius_all != 0:
+                fill_rect = Rect(0, 0, self.rect.width - 2 * self.bar_border_width,
+                                 self.rect.height - 2 * self.bar_border_width,
+                                 self.rect.corner_radius_all - self.bar_border_width, color=(255, 255, 255))
+            else:
+                cuts_corner_radius = {}
+                for corners, corner_value in self.rect.corner_radius_specific.items():
+                    cuts_corner_radius[corners] = corner_value - self.bar_border_width
+
+                fill_rect = Rect(0, 0, self.rect.width - 2 * self.bar_border_width,
+                                 self.rect.height - 2 * self.bar_border_width,
+                                 corner_radius_specific=cuts_corner_radius, color=(255, 255, 255))
             fill_rect.render(corner_rect_cuts)
 
             # Adding bar

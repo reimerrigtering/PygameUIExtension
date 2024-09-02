@@ -1,5 +1,4 @@
 Category: Bar
-FIXME: Rounded corners slight radius difference
 FIXME: Rounded corners irregular stop block movement / placement
 
 Category: NEW 2.0.2

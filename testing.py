@@ -6,7 +6,11 @@ from ui_classes import (Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Plac
 display_window = Display((800, 800), 'testing')
 
 # rectangle = Rect(20, 70, 130, 200, border=3)
-rectangle = Rect(20, 70, 130, 200, border=3, corner_radius_all=30)
+# rectangle = Rect(20, 70, 130, 200, border=3, corner_radius_all=30)
+rectangle = Rect(20, 70, 130, 200, border=3, corner_radius_specific={Placement.BOTTOM_LEFT: 60,
+                                                                     Placement.BOTTOM_RIGHT: 20,
+                                                                     Placement.TOP_RIGHT: 40})
+
 circle = Circle(155, 275, 80, {Placement.TOP_LEFT: False}, color=(0, 150, 255), border=10)
 
 polygon1 = Polygon([(80, 398), (100, 410), (100, 430), (80, 442), (60, 430), (60, 410)], color=(50, 0, 100))
