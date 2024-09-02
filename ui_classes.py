@@ -1281,6 +1281,9 @@ class Bar:
         if display is None:
             raise ValueError('Display argument missing')
 
+        bar_display = display
+        corner_rect_cuts = None
+
         self.rect.render(display)
 
         if self.start_fill_side == Placement.LEFT:
@@ -1299,9 +1302,32 @@ class Bar:
         if self.display_range[0] > self.display_range[1] and self.bar_inverse_color is not None:
             color = self.bar_inverse_color
 
-        bar_rect = Rect(bar_x, bar_y, bar_size[0], bar_size[1], color=color)
+        if self.rect.corner_radius_all != 0 or self.rect.corner_radius_specific is not None:
+            # Creating rounded surface
+            trans_color = (255, 0, 0) if (255, 0, 0) != color else (0, 255, 0)
+            corner_rect_cuts = pygame.Surface((self.rect.width - 2 * self.bar_border_width,
+                                               self.rect.height - 2 * self.bar_border_width))
+            corner_rect_cuts.set_colorkey((255, 255, 255))
+            corner_rect_cuts.fill(trans_color)
+            fill_rect = Rect(0, 0, self.rect.width - 2 * self.bar_border_width,
+                             self.rect.height - 2 * self.bar_border_width, self.rect.corner_radius_all,
+                             self.rect.corner_radius_specific, color=(255, 255, 255))
+            fill_rect.render(corner_rect_cuts)
 
-        bar_rect.render(display)
+            # Adding bar
+            bar_rect_surface = pygame.Surface(bar_size, pygame.SRCALPHA)
+            bar_rect_surface.set_colorkey(trans_color)
+            bar_rect = Rect(-bar_x + self.rect.x, 0, self.rect.width, self.rect.height, color=color)
+            bar_rect.render(bar_rect_surface)
+
+            # Removing corners
+            if self.start_fill_side == Placement.LEFT:
+                bar_rect_surface.blit(corner_rect_cuts, (self.rect.x - bar_x + self.bar_border_width, 0))
+            elif self.start_fill_side == Placement.BOTTOM:
+                bar_rect_surface.blit(corner_rect_cuts, (0, self.rect.y - bar_y + self.bar_border_width))
+            # bar_rect_surface.convert_alpha()
+
+            bar_display = bar_rect_surface
 
         if self.bar_closed:
             if self.start_fill_side == Placement.LEFT:
@@ -1319,7 +1345,7 @@ class Bar:
                     max_stop_block = Rect(bar_x, bar_y - self.bar_border_width, stop_width, stop_height,
                                           color=self.rect.color)
 
-                max_stop_block.render(display)
+                max_stop_block.render(bar_display)
 
             if self.max_value_range[0] < self.display_range[0] <= self.max_value_range[1]:
                 if self.start_fill_side == Placement.LEFT:
@@ -1330,7 +1356,16 @@ class Bar:
                                           bar_y + bar_size[1] - self.bar_border_width, stop_width, stop_height,
                                           color=self.rect.color)
 
-                max_stop_block.render(display)
+                max_stop_block.render(bar_display)
+
+        if self.rect.corner_radius_all != 0 or self.rect.corner_radius_specific is not None:
+            # Displaying bar
+            display.blit(bar_display, (bar_x, bar_y))
+            # display.blit(corner_rect_cuts, (self.rect.x + self.bar_border_width,
+            #                                 self.rect.y + self.bar_border_width))
+        else:
+            bar_rect = Rect(bar_x, bar_y, bar_size[0], bar_size[1], color=color)
+            bar_rect.render(display)
 
         if self.text is not None:
             self.text.render(display)

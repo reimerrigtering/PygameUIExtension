@@ -5,7 +5,8 @@ from ui_classes import (Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Plac
 
 display_window = Display((800, 800), 'testing')
 
-rectangle = Rect(20, 70, 130, 200, border=3)
+# rectangle = Rect(20, 70, 130, 200, border=3)
+rectangle = Rect(20, 70, 130, 200, border=3, corner_radius_all=30)
 circle = Circle(155, 275, 80, {Placement.TOP_LEFT: False}, color=(0, 150, 255), border=10)
 
 polygon1 = Polygon([(80, 398), (100, 410), (100, 430), (80, 442), (60, 430), (60, 410)], color=(50, 0, 100))
@@ -35,7 +36,8 @@ text = Text(
 text_surround_rect = Rect(400, 400, 250, 250, color=(200, 200, 200))
 
 bar = Bar(rectangle, bar_color=(255, 125, 0), bar_inverse_color=(255, 0, 0), bar_closed=True,
-          start_fill_side=Placement.LEFT, _text=Text('Test', font_size=30, alignment=Placement.TOP_OUT), fit_text=False)
+          start_fill_side=Placement.BOTTOM, _text=Text('Test', font_size=30, alignment=Placement.TOP_OUT),
+          fit_text=False)
 
 moving_block = Rect(50, 500, 50, 50, color=(255, 0, 0), border=20)
 moving_block_sqr = Rect(48, 498, 94, 94, color=(0, 0, 0), border=2)

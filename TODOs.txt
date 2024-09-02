@@ -1,12 +1,15 @@
-Category: 2.0.2
-TODO: Bar           - Allow rounded corners for Bar class objects
+Category: Bar
+FIXME: Rounded corners slight radius difference
+FIXME: Rounded corners irregular stop block movement / placement
+
+Category: NEW 2.0.2
 TODO: Combination   - Combination objects
 TODO: Animation     - ROTATE action
 TODO: Animation     - ROTATE_TO action
 TODO: Animation     - Improve attribute catch return text
 TODO: Scene         - Multiple active scenes rendering
 
-Category: 2.1.0
+Category: NEW 2.1.0
 TODO: Allow alpha color effect to all display objects
 TODO: ObjectAnimation CHANGE_OBJECT Action
 TODO: ObjectAnimation trace attribute
