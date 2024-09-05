@@ -6,7 +6,6 @@ TODO: Group wide attribute changes work on all objects inside the group
 
 Category: NEW 2.0.2
 TODO: Animation     - ROTATE action
-TODO: Animation     - ROTATE_TO action
 TODO: Animation     - Improve attribute catch return text
 TODO: Scene         - Multiple active scenes rendering
 
@@ -14,3 +13,4 @@ Category: NEW 2.1.0
 TODO: Allow alpha color effect to all display objects
 TODO: ObjectAnimation CHANGE_OBJECT Action
 TODO: ObjectAnimation trace attribute
+TODO: ObjectAnimation ROTATE_TO action
