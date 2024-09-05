@@ -1,8 +1,11 @@
 Category: Bar
 FIXME: Rounded corners irregular stop block movement / placement
 
+Category: Unverified Features
+Test: Group class
+Test: Group class ObjectAnimation compatibility
+
 Category: NEW 2.0.2
-TODO: Combination   - Combination objects
 TODO: Animation     - ROTATE action
 TODO: Animation     - ROTATE_TO action
 TODO: Animation     - Improve attribute catch return text

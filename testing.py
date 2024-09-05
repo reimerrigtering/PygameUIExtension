@@ -1,6 +1,6 @@
 import pygame
-from ui_classes import (Display, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa, Button,
-                        InputField, Image, Scene)
+from ui_classes import (Display, Group, Rect, Circle, Polygon, Ellipse, Text, Bar, Placement, ObjectAnimation as oa,
+                        Button, InputField, Image, Scene, DisplayObject)
 
 
 display_window = Display((800, 800), 'testing')
@@ -18,6 +18,9 @@ polygon2 = Polygon([(100, 428), (120, 440), (120, 460), (100, 472), (80, 460), (
 
 ellipse1 = Ellipse(300, 50, 100, 200, color=(150, 0, 150), border=10)
 ellipse2 = Ellipse(275, 75, 200, 100, color=(0, 150, 150), border=10)
+
+group1 = Group(polygon1, polygon2, kill_on_error=False)
+group2 = Group(ellipse1, ellipse2)
 
 text_single = Text('Double line test...', 400, 350, (50, 0, 200), alignment=Placement.TOP, resize_max_width=250,
                    resize_max_height=50)
@@ -109,7 +112,7 @@ print_words_button = Button(Rect(100, 550, 100, 100, color=(200, 200, 200)), _te
                             call_on_press_kwargs=[{'string': 'testing'}, {'string': 'multiple default button kwargs'}])
 
 
-test_scene_1 = Scene('test1', (255, 255, 255), [circle, polygon1, polygon2, ellipse1, ellipse2,
+test_scene_1 = Scene('test1', (255, 255, 255), [circle, group1, group2,
                                                 bar, print_words_button])
 test_scene_2 = Scene('test2', (255, 255, 255), [moving_block_sqr, moving_block,
                                                 move_block_button])

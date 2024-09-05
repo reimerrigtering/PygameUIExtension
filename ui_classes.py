@@ -140,6 +140,44 @@ class Display:
         Frame.increase(increase_frame)
 
 
+class Group:
+    objects: Iterable = ()
+    kill_on_error: bool = True
+
+    def __init__(self, *group_objects, kill_on_error: bool = True) -> None:
+        self.objects = group_objects
+        self.kill_on_error = kill_on_error
+
+    def render(self, display: pygame.Surface | None = None) -> None:
+        display = display if display is not None else Display.window()
+        if display is None:
+            raise ValueError('Display argument missing')
+
+        if isinstance(self.objects, Iterable):
+            for obj in self.objects:
+                if isinstance(obj, DisplayObject):
+                    obj.render(display)
+
+        else:
+            raise TypeError('Combination object should contain sub-objects')
+
+    def __setattr__(self, key, value) -> None:
+        if key in ('objects', 'kill_on_error'):
+            super().__setattr__(key, value)
+        else:
+            if isinstance(self.objects, Iterable):
+                for obj in self.objects:
+                    try:
+                        obj.key = value
+
+                    except AttributeError as e:
+                        if self.kill_on_error:
+                            raise e
+
+            else:
+                raise TypeError('Combination object should contain sub-objects')
+
+
 @dataclass(kw_only=True)
 class Shape:
     color: T_COLOR = (0, 0, 0)
