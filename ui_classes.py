@@ -161,22 +161,6 @@ class Group:
         else:
             raise TypeError('Combination object should contain sub-objects')
 
-    def __setattr__(self, key, value) -> None:
-        if key in ('objects', 'kill_on_error'):
-            super().__setattr__(key, value)
-        else:
-            if isinstance(self.objects, Iterable):
-                for obj in self.objects:
-                    try:
-                        obj.key = value
-
-                    except AttributeError as e:
-                        if self.kill_on_error:
-                            raise e
-
-            else:
-                raise TypeError('Combination object should contain sub-objects')
-
 
 @dataclass(kw_only=True)
 class Shape:

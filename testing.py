@@ -19,7 +19,7 @@ polygon2 = Polygon([(100, 428), (120, 440), (120, 460), (100, 472), (80, 460), (
 ellipse1 = Ellipse(300, 50, 100, 200, color=(150, 0, 150), border=10)
 ellipse2 = Ellipse(275, 75, 200, 100, color=(0, 150, 150), border=10)
 
-group1 = Group(polygon1, polygon2, kill_on_error=False)
+group1 = Group(polygon1, polygon2)
 group2 = Group(ellipse1, ellipse2)
 
 text_single = Text('Double line test...', 400, 350, (50, 0, 200), alignment=Placement.TOP, resize_max_width=250,

@@ -1,9 +1,8 @@
 Category: Bar
 FIXME: Rounded corners irregular stop block movement / placement
 
-Category: Unverified Features
-Test: Group class
-Test: Group class ObjectAnimation compatibility
+Category: Group
+TODO: Group wide attribute changes work on all objects inside the group
 
 Category: NEW 2.0.2
 TODO: Animation     - ROTATE action
