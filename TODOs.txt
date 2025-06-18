@@ -4,6 +4,9 @@ FIXME: Rounded corners irregular stop block movement / placement
 Category: Group
 TODO: Group wide attribute changes work on all objects inside the group
 
+Category: Scene
+TODO: Add functionality to parse display functions alongside objects
+
 Category: NEW 2.0.2
 TODO: Animation     - ROTATE action
 TODO: Animation     - Improve attribute catch return text
