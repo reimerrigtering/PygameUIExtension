@@ -1,47 +1,95 @@
+from __future__ import annotations
 import pygame
 from dataclasses import dataclass, field
 from collections.abc import Callable, Sequence, Iterable, MutableSequence, Mapping, MutableMapping, Hashable
 from typing import ClassVar, Protocol, runtime_checkable
+
 pygame.font.init()
 
-T_COLOR = Sequence[int, int, int] | Sequence[int, int, int, int] | tuple[int, int, int]
+type T_COLOR = tuple[int, int, int] | tuple[int, int, int, int]
+"""type: Type definition of colors allowing 3 rgb channels and an optional 4th alpha channel."""
 
 
 @runtime_checkable
 class DisplayObject(Protocol):
+    """Protocol to identify objects based on a 'render' function."""
     def render(self, display) -> None: ...
 
 
 class Placement:
-    CENTER: int = 0
-    LEFT: int = 1
-    RIGHT: int = 2
-    TOP: int = 3
-    BOTTOM: int = 4
-    LEFT_OUT: int = 5
-    RIGHT_OUT: int = 6
-    TOP_OUT: int = 7
-    BOTTOM_OUT: int = 8
-    TOP_LEFT: int = 9
-    TOP_RIGHT: int = 10
-    BOTTOM_LEFT: int = 11
-    BOTTOM_RIGHT: int = 12
+    """Predefined placements for easy positioning of objects.
 
-    _indicies = list(range(13))
+    Attributes:
+        CENTER (ClassVar[int]): Constant set to 0.
+        LEFT (ClassVar[int]): Constant set to 1.
+        RIGHT (ClassVar[int]): Constant set to 2.
+        TOP (ClassVar[int]): Constant set to 3.
+        BOTTOM (ClassVar[int]): Constant set to 4.
+        LEFT_OUT (ClassVar[int]): Constant set to 5.
+        RIGHT_OUT (ClassVar[int]): Constant set to 6.
+        TOP_OUT (ClassVar[int]): Constant set to 7.
+        BOTTOM_OUT (ClassVar[int]): Constant set to 8.
+        TOP_LEFT (ClassVar[int]): Constant set to 9.
+        TOP_RIGHT (ClassVar[int]): Constant set to 10.
+        BOTTOM_LEFT (ClassVar[int]): Constant set to 11.
+        BOTTOM_RIGHT (ClassVar[int]): Constant set to 12.
+    """
+    CENTER: ClassVar[int] = 0
+    LEFT: ClassVar[int] = 1
+    RIGHT: ClassVar[int] = 2
+    TOP: ClassVar[int] = 3
+    BOTTOM: ClassVar[int] = 4
+    LEFT_OUT: ClassVar[int] = 5
+    RIGHT_OUT: ClassVar[int] = 6
+    TOP_OUT: ClassVar[int] = 7
+    BOTTOM_OUT: ClassVar[int] = 8
+    TOP_LEFT: ClassVar[int] = 9
+    TOP_RIGHT: ClassVar[int] = 10
+    BOTTOM_LEFT: ClassVar[int] = 11
+    BOTTOM_RIGHT: ClassVar[int] = 12
+
+    _INDICES = list(range(13))
 
     @classmethod
     def real_placement(cls, placement: int) -> bool:
-        return placement in cls._indicies
+        """
+        Checks if a given Placement is predefined.
+
+        Args:
+            placement (int): Placement to check.
+
+        Returns:
+            bool: True if the given Placement is predefined, False otherwise.
+        """
+        return placement in cls._INDICES
 
     @classmethod
     def double_placement(cls, placement: int) -> bool:
+        """
+        Checks if a given Placement defines positioning on 2 axes.
+
+        Args:
+            placement (int): Placement to check.
+
+        Returns:
+            bool: True if placement defines 2 axes, False otherwise.
+        """
         if not cls.real_placement(placement):
             raise ValueError('Not a valid Placement')
 
         return placement in (cls.TOP_LEFT, cls.TOP_RIGHT, cls.BOTTOM_LEFT, cls.BOTTOM_RIGHT, cls.CENTER)
 
     @classmethod
-    def split(cls, placement: int) -> int | tuple[int, int]:
+    def split(cls, placement: int) -> tuple[int, int]:
+        """
+        Splits a Placement that defines positioning on 2 axes to their single axis Placements.
+
+        Args:
+            placement (int): Placement that defines positioning on 2 axes.
+
+        Returns:
+            tuple[int, int]: Separate Placements for the horizontal and vertical axis.
+        """
         if not cls.real_placement(placement):
             raise ValueError('Not a valid Placement')
 
@@ -68,10 +116,20 @@ class Placement:
 
 
 class Frame:
+    """Frame counter."""
     _frame: int = 0
 
     @classmethod
     def increase(cls, amount: int = 1) -> int:
+        """
+        Increases the frame by the given amount.
+
+        Args:
+            amount (int): Amount to increase the frame counter by.
+
+        Returns:
+            int: The new current frame number.
+        """
         if isinstance(amount, int):
             cls._frame += amount
             return cls._frame
@@ -80,6 +138,12 @@ class Frame:
 
     @classmethod
     def set(cls, amount: int = 0) -> int:
+        """
+        Sets the frame to the given amount.
+
+        Returns:
+            int: The new current frame number.
+        """
         if isinstance(amount, int):
             cls._frame = amount
             return cls._frame
@@ -88,25 +152,62 @@ class Frame:
 
     @classmethod
     def get(cls) -> int:
+        """
+        Gets the current frame.
+
+        Returns:
+            int: Current frame.
+        """
         return cls._frame
 
     @classmethod
     def get_delta(cls, value: int) -> int:
+        """
+        Gets the delta between current frame and given value.
+
+        Args:
+            value (int): The value to get the delta for.
+
+        Returns:
+            int: The delta between the current frame and the given value.
+        """
         if not isinstance(value, int):
             return NotImplemented
         return cls.get() - value
 
     def __repr__(self) -> str:
+        """
+        Represents the current frame as a string.
+
+        Returns:
+            str: The current frame as a string.
+        """
         return f'Frame: {Frame.get()}'
 
 
 class Display:
-    CLOCK = pygame.time.Clock()
+    """
+    Access to display functions and reduces display parsing necessity for all DisplayObjects.
+
+    Attributes:
+        fps (ClassVar[int]): Frames per Second of the display.
+        size (tuple): Size of the display.
+        title (str): Title of the display.
+        flags (tuple): Additional arguments for display configuration.
+        display (pygame.Surface): Display surface.
+    """
+    _CLOCK: ClassVar[pygame.time.Clock] = pygame.time.Clock()
     fps: ClassVar[int] = 60
-    _win: None = None
+    _win: pygame.Surface | None = None
 
     @classmethod
-    def window(cls):
+    def window(cls) -> pygame.Surface | None:
+        """
+        Return the display surface.
+
+        Returns:
+            pygamme.Surface | None: Display surface.
+        """
         return cls._win
 
     def __init__(self, size: tuple[int, int], title: str | None = None, *args) -> None:
@@ -121,34 +222,70 @@ class Display:
 
     @property
     def width(self) -> int:
+        """
+        Width of the display.
+
+        Returns:
+            int: Width of the display.
+        """
         return self.display.get_width()
 
     @property
     def height(self) -> int:
+        """
+        Height of the display.
+
+        Returns:
+             int: Height of the display.
+        """
         return self.display.get_height()
 
     def fill(self, color: T_COLOR) -> None:
+        """
+        Fills the display.
+
+        Args:
+            color (T_COLOR): Color used to fill the display.
+        """
         self.display.fill(color)
 
     @staticmethod
     def update() -> None:
+        """
+        Updates the display.
+        """
         pygame.display.update()
 
     @classmethod
-    def tick_frame(cls, increase_frame: int = 1):
-        cls.CLOCK.tick(cls.fps)
+    def tick_frame(cls, increase_frame: int = 1) -> None:
+        """
+        Ticks the frame counter.
+
+        Args:
+            increase_frame (int): Amount to increase the frame counter by.
+        """
+        cls._CLOCK.tick(cls.fps)
         Frame.increase(increase_frame)
 
 
 class Group:
-    objects: Iterable = ()
-    kill_on_error: bool = True
+    """
+    Groups DisplayObjects together to be manipulated simulatiously.
 
-    def __init__(self, *group_objects, kill_on_error: bool = True) -> None:
+    Attributes:
+        objects (Iterable[DisplayObjects]): List of DisplayObjects to be added to the group.
+    """
+
+    def __init__(self, group_objects: Iterable[DisplayObject]) -> None:
         self.objects = group_objects
-        self.kill_on_error = kill_on_error
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders all DisplayObjects in the Group.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -159,21 +296,51 @@ class Group:
                     obj.render(display)
 
         else:
-            raise TypeError('Combination object should contain sub-objects')
+            raise TypeError('Objects should be an Iterable containing DispayObjects')
+
+    def __setattr__(self, key, value) -> None:
+        """
+        Sets an attribute for all objects within the group when all of them have the attribute.
+
+        Args:
+             key (str): Attribute name.
+             value (Any): Attribute value.
+        """
+        if key == 'objects':
+            super().__setattr__(key, value)
+        else:
+            if all(hasattr(obj, key) for obj in self.objects):
+                for obj in self.objects:
+                    obj.key = value
 
 
 @dataclass(kw_only=True)
 class Shape:
+    """
+    Parent class for shapes.
+
+    Attributes:
+        color (T_COLOR): Color used to draw the shape.
+        border (int): Border width of the shape.
+    """
     color: T_COLOR = (0, 0, 0)
     border: int = 0
-
-    def __repr__(self) -> str:
-        return f'Shape: {self.color}'
 
 
 @dataclass
 class Rect(Shape):
-    _corner_placement_names: ClassVar[dict[int, str]] = {
+    """
+    Rectangle shape.
+
+    Attributes:
+        x (int): X coordinate of the rectangle top-left corner.
+        y (int): Y coordinate of the rectangle top-left corner.
+        width (int): Width of the rectangle.
+        height (int): Height of the rectangle.
+        corner_radius_all (int): Radius of all rectangle corners.
+        corner_radius_specific (dict[int, int]): Radius of specific Rectangle corners.
+    """
+    _CORNER_PLACEMENT_NAMES: ClassVar[dict[int, str]] = {
         Placement.TOP_LEFT: 'border_top_left_radius',
         Placement.TOP_RIGHT: 'border_top_right_radius',
         Placement.BOTTOM_LEFT: 'border_bottom_left_radius',
@@ -192,14 +359,33 @@ class Rect(Shape):
 
     @property
     def rect(self) -> pygame.Rect:
+        """
+        Returns the rectangle.
+
+        Returns:
+             pygaem.Rect: The rectangle.
+        """
         return self._rect
 
     def __setattr__(self, key, value) -> None:
+        """
+        Set an attribute of the rectangle and redefine the rectangle when position or size is changed.
+
+        Args:
+            key (str): Attribute name.
+            value (Any): Attribute value.
+        """
         super().__setattr__(key, value)
         if key in ['x', 'y', 'width', 'height'] and self._rect is not None:
             self._rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Rectangle.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -207,44 +393,75 @@ class Rect(Shape):
         if self.corner_radius_specific is None:
             pygame.draw.rect(display, self.color, self.rect, self.border, self.corner_radius_all)
         else:
-            corner_radius = {Rect._corner_placement_names[key]: value for key, value in
+            corner_radius = {Rect._CORNER_PLACEMENT_NAMES[key]: value for key, value in
                              self.corner_radius_specific.items()}
             pygame.draw.rect(display, self.color, self.rect, self.border, self.corner_radius_all,
                              **corner_radius)
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the Rectangle.
+
+        Returns:
+            str: The string representation of the Rectangle.
+        """
         return f'Rect: ({self.x}, {self.y}) - ({self.width}, {self.height})'
 
 
 @dataclass
 class Circle(Shape):
-    _corner_placement_names: ClassVar[dict[int, str]] = {
+    """
+    Circle shape.
+
+    Attributes:
+        x (int): X coordinate of the Circle center.
+        y (int): Y coordinate of the Circle center.
+        radius (int): Radius of the Circle.
+        enabled_corners (dict[int, bool] | None): Enabled corners of the Circle, if None the complete Circle is drawn.
+    """
+    _CORNER_PLACEMENT_NAMES: ClassVar[dict[int, str]] = {
         Placement.TOP_LEFT: 'draw_top_left',
         Placement.TOP_RIGHT: 'draw_top_right',
         Placement.BOTTOM_LEFT: 'draw_bottom_left',
         Placement.BOTTOM_RIGHT: 'draw_bottom_right'
     }
-    corner_base_dict: ClassVar[dict[int, bool]] = {Placement.TOP_LEFT: True, Placement.TOP_RIGHT: True,
-                                                   Placement.BOTTOM_LEFT: True, Placement.BOTTOM_RIGHT: True}
     _circle: tuple[int, int, int] = field(default=None, kw_only=True)
     x: int = 0
     y: int = 0
     _radius: int = 0
-    remove_corner_specific: dict[int, bool] | None = None
+    enabled_corners: dict[int, bool] | None = None
 
     def __post_init__(self):
         self._circle = (self.x, self.y, self._radius)
 
     @property
     def circle(self) -> tuple[int, int, int]:
+        """
+        Returns the circle.
+
+        Returns:
+            tuple[int, int, int]: The Circle.
+        """
         return self._circle
 
     @property
     def center(self) -> tuple[int, int]:
+        """
+        Returns the center of the Circle.
+
+        Returns:
+            tuple[int, int]: The center of the Circle.
+        """
         return self.circle[0], self.circle[1]
 
     @property
     def radius(self) -> int:
+        """
+        Returns the radius of the Circle.
+
+        Returns:
+            int: The radius of the Circle.
+        """
         return self.circle[2]
 
     @radius.setter
@@ -256,6 +473,12 @@ class Circle(Shape):
 
     @property
     def diameter(self) -> int:
+        """
+        Returns the diameter of the Circle.
+
+        Returns:
+            int: The diameter of the Circle.
+        """
         return self.radius * 2
 
     @diameter.setter
@@ -265,6 +488,12 @@ class Circle(Shape):
 
     @property
     def width(self) -> int:
+        """
+        Returns the width of the Circle.
+
+        Returns:
+            int: The width of the Circle.
+        """
         return self.diameter
 
     @width.setter
@@ -273,6 +502,12 @@ class Circle(Shape):
 
     @property
     def height(self) -> int:
+        """
+        Returns the height of the Circle.
+
+        Returns:
+            int: The height of the Circle.
+        """
         return self.diameter
 
     @height.setter
@@ -280,36 +515,66 @@ class Circle(Shape):
         self.diameter = value
 
     def __setattr__(self, key, value) -> None:
+        """
+        Sets an attribute of the circle and redefine the Circle when position or radius is changed.
+
+        Args:
+             key (str): Attribute name.
+             value (Any): Attribute value.
+        """
         super().__setattr__(key, value)
         if key in ['x', 'y', '_radius'] and self._circle is not None:
             self._circle = (self.x, self.y, self._radius)
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Circle.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
 
-        if self.remove_corner_specific is None:
+        if self.enabled_corners is None:
             pygame.draw.circle(display, self.color, self.center, self.radius, self.border)
         else:
-            draw_corners = Circle.corner_base_dict.copy()
-            draw_corners.update(self.remove_corner_specific)
-            draw_corners_strings = {Circle._corner_placement_names[key]: value for key, value in draw_corners.items()}
-            pygame.draw.circle(display, self.color, self.center, self.radius, self.border,
-                               **draw_corners_strings)
+            draw_corner_strings = {value: self.enabled_corners[key] if key in self.enabled_corners.keys() else False for
+                                   key, value in Circle._CORNER_PLACEMENT_NAMES.items()}
+            pygame.draw.circle(display, self.color, self.center, self.radius, self.border, **draw_corner_strings)
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the Circle.
+
+        Returns:
+            str: The string representation of the Circle.
+        """
         return f'Circle: ({self.center}) - ({self.radius})'
 
 
 @dataclass
 class Polygon(Shape):
+    """
+    Polygon shape.
+
+    Attributes:
+        polygon_points (MutableSequence[tuple[int, int]]): The points of the Polygon in clockwise order.
+    """
     polygon_points: MutableSequence[tuple[int, int]] | None = None
 
     def __post_init__(self) -> None:
         self.polygon_points = self.polygon_points if self.polygon_points is not None else [(0, 0), (0, 0), (0, 0)]
 
     def insert_point(self, coordinate: tuple[int, int], point_index: int = -1) -> None:
+        """
+        Insert a point in the Polygon.
+
+        Args:
+            coordinate (tuple[int, int]): The coordinate of the inserted point.
+            point_index (int): the index of the place where to insert into the point order.
+        """
         if not isinstance(self.polygon_points, MutableSequence):
             raise TypeError('Polygon point insertion only possible on MutableSequence')
         elif not isinstance(coordinate, Sequence):
@@ -319,6 +584,12 @@ class Polygon(Shape):
             self.polygon_points.insert(point_index, coordinate)
 
     def remove_point(self, coordinate: tuple[int, int] = (0, 0)) -> int | None:
+        """
+        Removes a point in the Polygon.
+
+        Args:
+            coordinate (tuple[int, int]): The coordinate of the point to remove.
+        """
         if not isinstance(self.polygon_points, MutableSequence):
             raise TypeError('Polygon point removal only possible on MutableSequence')
         if not isinstance(coordinate, Sequence):
@@ -329,9 +600,15 @@ class Polygon(Shape):
             self.polygon_points.remove(coordinate)
             return point_index
         else:
-            return
+            return None
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Polygon.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -344,6 +621,15 @@ class Polygon(Shape):
 
 @dataclass
 class Ellipse(Shape):
+    """
+    Ellipse shape.
+
+    Attributes:
+        x (int): X coordinate of the ellipse's bounding box.
+        y (int): Y coordinate of the ellipse's bounding box.
+        width (int): Width of the ellipse's bounding box.
+        height (int): Height of the ellipse's bounding box.
+    """
     _ellipse: pygame.Rect = field(default=None, kw_only=True)
     x: int = 0
     y: int = 0
@@ -355,14 +641,33 @@ class Ellipse(Shape):
 
     @property
     def ellipse(self) -> pygame.Rect:
+        """
+        Returns the Ellipse bounding box.
+
+        Returns:
+            pygame.Rect: The Ellipse bounding box.
+        """
         return self._ellipse
 
     def __setattr__(self, key, value) -> None:
+        """
+        Set an attribute of the Ellipse and redefine the bounding box when position or size is changed.
+
+        Args:
+            key (str): Attribute name.
+            value (Any): Attribute value.
+        """
         super().__setattr__(key, value)
         if key in ['x', 'y', 'width', 'height'] and self._ellipse is not None:
             self._ellipse = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Ellipse.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -370,12 +675,37 @@ class Ellipse(Shape):
         pygame.draw.ellipse(display, self.color, self.ellipse, self.border)
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the Ellipse.
+
+        Returns:
+            str: The string representation of the Ellipse.
+        """
         return f'Ellipse: ({self.x}, {self.y}) - ({self.width}, {self.height})'
 
 
 @dataclass
 class Text:
-    _text: str = ''
+    """
+    Text displays and base for objects with access to text functionality.
+
+    Attributes:
+        x (int): X coordinate of the text.
+        y (int): Y coordinate of the text.
+        color (T_COLOR): Text color.
+        font (str): Text font name.
+        font_size (int | None): Text font size, use None for auto-sizing text.
+        bold (bool): Bold text.
+        italic (bool): Italic text.
+        alignment (int): Text alignment compared to given x/y coordinate.
+        resize_max_width (int | None): Bounding box width for automatic resizing texts and multiline.
+        resize_max_height (int | None): Bounding box height for automatic resizing texts and multiline.
+        margin (int): Margins inside the bounding box.
+        dynamic_multi_line (bool): Display multiline text with autoscaling.
+        multi_line_height_factor (float): Multiline font letter height factor.
+        multi_line_spacing_factor (float): Multiline line spacing.
+    """
+    text: str = ''
     x: int = 0
     y: int = 0
     color: T_COLOR = (0, 0, 0)
@@ -388,18 +718,18 @@ class Text:
     resize_max_width: int | None = None
     resize_max_height: int | None = None
     margin: int = 20
-    dynamic_multi_line: bool = False
-    multi_line_splitted: MutableSequence['Text'] | None = None
 
-    multi_line_height_factor: ClassVar[int] = 0.75
-    multi_line_spacing_factor: ClassVar[int] = 1.4
+    dynamic_multi_line: bool = False
+    _multi_line_splitted: MutableSequence[Text] | None = None
+    multi_line_height_factor: float = 0.75
+    multi_line_spacing_factor: float = 1.4
 
     def __post_init__(self) -> None:
         if self.dynamic_multi_line:
             if None in [self.resize_max_width, self.resize_max_height]:
                 raise ValueError('Provide resize_max_width and resize_max_height arguments to use dynamic multilines')
 
-            self.multi_line_splitted = []
+            self._multi_line_splitted = []
             lines = self.text.splitlines(False)
 
             longest_line = max(lines, key=lambda text: len(text))
@@ -414,7 +744,7 @@ class Text:
                 line_text_obj = Text(line, self.x, self.y + n_line * line_size, self.color, self.font, bold=self.bold,
                                      italic=self.italic, alignment=self.alignment, font_size=max_font_size,
                                      margin=self.margin)
-                self.multi_line_splitted.append(line_text_obj)
+                self._multi_line_splitted.append(line_text_obj)
 
         else:
             if self.font_size is None:
@@ -424,6 +754,15 @@ class Text:
             self.update_font()
 
     def auto_size_font(self, resize: bool = True) -> int:
+        """
+        Calculates maximum font size within boundries.
+
+        Args:
+            resize (bool): Apply calculated font size.
+
+        Returns:
+            int: Maximum font size within boundries.
+        """
         temp_text = self._text_font_processed.render(self.text, True, self.color)
 
         size_factor_w = size_factor_h = 1
@@ -439,33 +778,47 @@ class Text:
         return font_size
 
     def update_font(self) -> None:
+        """
+        Updates font setup.
+        """
         self._text_font_processed = pygame.font.SysFont(self.font, self.font_size, self.bold, self.italic)
 
-    @property
-    def text(self) -> str:
-        return self._text
+    def __setattr__(self, key, value) -> None:
+        """
+        Set an attribute of the Text object and resizes when the text is changed.
 
-    @text.setter
-    def text(self, value: object) -> None:
-        if isinstance(value, str):
-            self._text = value
-
+        Args:
+            key (str): Attribute name.
+            value (Any): Attribute value.
+        """
+        super().__setattr__(key, value)
+        if key == 'text' and self.text is not None:
             if self.resize_max_width is not None or self.resize_max_height is not None:
                 self.auto_size_font()
-        else:
-            raise NotImplemented
 
     @property
     def text_size_rect(self) -> Rect:
+        """
+        Returns text bounding box.
+
+        Returns:
+            Rect: Text bounding box.
+        """
         return Rect(self.x, self.y, self.resize_max_width, self.resize_max_height)
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Text.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
 
         if self.dynamic_multi_line:
-            for text_obj in self.multi_line_splitted:
+            for text_obj in self._multi_line_splitted:
                 text_obj.render(display)
 
         else:
@@ -475,6 +828,7 @@ class Text:
             if y_align not in (Placement.TOP, Placement.TOP_OUT) and self.resize_max_height is None:
                 y_align = Placement.TOP
 
+            # noinspection PyUnreachableCode
             match y_align:
                 case Placement.CENTER:
                     text_y = self.y + (self.resize_max_height - text_render.get_height()) // 2
@@ -492,6 +846,7 @@ class Text:
             if x_align not in (Placement.LEFT, Placement.LEFT_OUT) and self.resize_max_width is None:
                 x_align = Placement.LEFT
 
+            # noinspection PyUnreachableCode
             match x_align:
                 case Placement.CENTER:
                     text_x = self.x + (self.resize_max_width - text_render.get_width()) // 2
@@ -508,28 +863,59 @@ class Text:
 
             display.blit(text_render, (text_x, text_y))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns string representation of the Text object.
+
+        Returns:
+             str: String representation of the Text object.
+        """
         return f'"{self.text}", ({self.x}, {self.y}), {self.color}, size={self.font_size}'
 
 
 @dataclass
 class InputField:
-    active_input_fields: ClassVar[list['InputField', ...]] = []
-    active_input: ClassVar[None or 'InputField'] = None
+    """
+    Text input fields.
+
+    Attributes:
+        active_input_fields (ClassVar[list[InputField]]): List of active InputFields.
+        active_input (ClassVar[InputField]): Active InputField where typing and returning are possible.
+        input_rect (tuple[int, int, int, int, T_COLOR] | Rect): InputField box.
+        rect_active_color (T_COLOR): InputField color when inputField is selected.
+        rect_not_active_color (T_COLOR): InputField color when inputField is not selected.
+        text (Text | str): Text object inside the InputField
+        empty_text (Text | str): Text object inside the InputField to show when the InputField is empty.
+        replace_text_char (str | None): If value is not None, replace all characters with value.
+        character_max (int | None): Used to set a maximum number of characters within the InputField.
+        restricted_characters (str): characters within this string are not ignored when entered into the InputField.
+        allow_letters (bool): Used to restrict all alphabetical characters at once.
+        allow_numbers (bool): Used to restrict all numeric characters at once.
+        allow_spaces (bool): Used to restrict spaces.
+        allow_special (str): Used to allow special characters into the InputField.
+        exit_esc (bool): Deselect InputField when 'escape' is pressed.
+        submit_return (bool): Returns text content upon pressing 'return'.
+        clear_on_submit (bool): Clears the InputField upon pressing 'return'.
+        can_del (bool): Allow deletion of characters upon pressing 'backspace'.
+        select_on_init (bool): immediately select the InputField upon creation.
+    """
+    active_input_fields: ClassVar[list[InputField]] = []
+    active_input: ClassVar[InputField | None] = None
+
+    input_rect: tuple[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
+    rect_active_color: T_COLOR | None = None
     rect_not_active_color: T_COLOR = field(default=None, kw_only=True)
 
-    input_rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
-    rect_active_color: T_COLOR | None = None
-
-    _text: Text | None = None
-    _empty_text: Text | None = None
-    replace_text_char: str | None = False
+    text: Text | str = ''
+    empty_text: Text | str = ''
+    replace_text_char: str | None = None
     _hidden_text: str = ''
 
     character_max: int | None = None
     restricted_characters: str = ''
-    allow_letters: bool = False
-    allow_numbers: bool = False
+    allow_letters: bool = True
+    allow_numbers: bool = True
+    allow_spaces: bool = True
     allow_special: str = ''
 
     exit_esc: bool = True
@@ -549,17 +935,19 @@ class InputField:
         if self.select_on_init:
             InputField.active_input = self
 
-        if self._text is None:
-            self._text = Text(x=self.input_rect.x, y=self.input_rect.y, resize_max_width=self.input_rect.width,
-                              resize_max_height=self.input_rect.height, font='monospace')
-        if self._empty_text is None:
-            self._empty_text = Text(x=self.input_rect.x, y=self.input_rect.y, resize_max_width=self.input_rect.width,
-                                    resize_max_height=self.input_rect.height, font='monospace')
+        if isinstance(self.text, str):
+            self.text = Text(text=self.text, x=self.input_rect.x, y=self.input_rect.y,
+                             resize_max_width=self.input_rect.width, resize_max_height=self.input_rect.height,
+                             font='monospace')
+        if isinstance(self.text, str):
+            self.empty_text = Text(text=self.empty_text, x=self.input_rect.x, y=self.input_rect.y,
+                                   resize_max_width=self.input_rect.width, resize_max_height=self.input_rect.height,
+                                   font='monospace')
 
-        if self._empty_text.resize_max_width is None:
-            self._empty_text.resize_max_width = self.input_rect.width
-        if self._empty_text.resize_max_height is None:
-            self._empty_text.resize_max_height = self.input_rect.height
+        if self.empty_text.resize_max_width is None:
+            self.empty_text.resize_max_width = self.input_rect.width
+        if self.empty_text.resize_max_height is None:
+            self.empty_text.resize_max_height = self.input_rect.height
 
         self.text.auto_size_font()
         self.empty_text.auto_size_font()
@@ -568,64 +956,74 @@ class InputField:
 
     @property
     def text_str(self) -> str:
-        return self._text.text
+        """
+        Returns the content inside the InputField.
+
+        Replaces all characters when the text should be hidden
+
+        Returns:
+            str: Content inside the InputField.
+        """
+        return self.text.text
 
     @text_str.setter
     def text_str(self, value) -> None:
         if isinstance(value, str):
-            if self.replace_text_char:
-                self._text.text = len(value) * self.replace_text_char
+            if self.replace_text_char is not None:
+                self.text.text = len(value) * self.replace_text_char
                 self._hidden_text = value
             else:
-                self._text.text = value
-        else:
-            raise NotImplemented
-
-    @property
-    def text(self) -> Text:
-        return self._text
-
-    @text.setter
-    def text(self, value) -> None:
-        if isinstance(value, Text):
-            self._text = value
+                self.text.text = value
         else:
             raise NotImplemented
 
     @property
     def text_hidden(self) -> str:
-        if self.replace_text_char:
+        """
+        Returns the text contents, even if the text is hidden.
+        """
+        if self.replace_text_char is not None:
             return self._hidden_text
         else:
             return self.text_str
 
     @property
-    def empty_text(self) -> Text:
-        return self._empty_text
-
-    @empty_text.setter
-    def empty_text(self, value) -> None:
-        if isinstance(value, Text):
-            self._empty_text = value
-        else:
-            raise NotImplemented
-
-    @property
     def empty_text_str(self) -> str:
-        return self._empty_text.text
+        """
+        Returns the text string of the empty_field Text object.
+
+        Returns:
+            str: Text string of the empty_field Text object.
+        """
+        return self.empty_text.text
 
     @empty_text_str.setter
     def empty_text_str(self, value) -> None:
         if isinstance(value, str):
-            self._empty_text.text = value
+            self.empty_text.text = value
         else:
             raise NotImplemented
 
     @property
     def rect_color(self) -> T_COLOR:
+        """
+        Returns the InputField color.
+
+        Returns:
+            T_COLOR: InputField color.
+        """
         return self.input_rect.color
 
     def is_allowed(self, char: str) -> bool:
+        """
+        Used to check if a character is allowed in the InputField.
+
+        Args:
+            char (str): Character to check.
+
+        Returns:
+            bool: True if the character is allowed in the InputField, else False.
+        """
         if char in self.restricted_characters:
             return False
         if not self.allow_numbers and not self.allow_letters and self.allow_special == '':
@@ -635,11 +1033,19 @@ class InputField:
             return True
         if self.allow_letters and char.isalpha():
             return True
+        if self.allow_spaces and char.isspace():
+            return True
         if char in self.allow_special:
             return True
         return False
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the InputField.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -655,7 +1061,13 @@ class InputField:
             self.text.render(display)
 
     @classmethod
-    def activate(cls, input_field) -> None:
+    def activate(cls, input_field: InputField) -> None:
+        """
+        Activates a given InputField and switches its color when a 'rect_active_color' is provided.
+
+        Args:
+            input_field (InputField): InputField object to activate.
+        """
         if cls.active_input is not None:
             cls.active_input.input_rect.color = input_field.rect_not_active_color
 
@@ -665,20 +1077,32 @@ class InputField:
 
     @classmethod
     def deactivate(cls) -> None:
+        """
+        Deactivates the current active InputField.
+        """
         if cls.active_input is not None:
             cls.active_input.input_rect.color = cls.active_input.rect_not_active_color
             cls.active_input = None
 
     @classmethod
-    def process_input(cls, event) -> None | str:
+    def process_input(cls, event: pygame.event.Event) -> str | None:
+        """
+        Processes the given event.
+
+        Args:
+            event (pygame.event.Event): Event to process.
+
+        Returns:
+            str | None: Return text if 'return' is pressed and 'submit_return' is set to True.
+        """
         if cls.active_input is None:
-            return
+            return None
         active_field = cls.active_input
 
         if event.key in (pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE):
             if event.key == pygame.K_ESCAPE and active_field.exit_esc:
                 cls.deactivate()
-                return
+                return None
 
             elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                 return_text = None
@@ -694,19 +1118,28 @@ class InputField:
             elif event.key == pygame.K_BACKSPACE and active_field.can_del:
                 if len(active_field.text_str) >= 1:
                     active_field.text_str = active_field.text_str[:-1]
-                return
+                return None
 
         elif active_field.is_allowed(event.unicode):
             if active_field.character_max is not None and len(active_field.text_str) < active_field.character_max:
                 active_field.text_str += event.unicode
             elif active_field.character_max is None:
                 active_field.text_str += event.unicode
-            return
+            return None
 
         print(f'Input processing is not implemented for {event.unicode}')
-        return
+        return None
 
     def check_collision(self, event_pos: tuple[int, int] | None = None) -> bool:
+        """
+        Checks for an event position on top of the InputField to select that field.
+
+        Args:
+            event_pos (tuple[int, int] | None): Event position or position of the mouse if None.
+
+        Returns:
+            bool: True if the mouse position collides with the InputField, else False.
+        """
         event_pos = pygame.mouse.get_pos() if event_pos is None else event_pos
 
         if self.input_rect.rect.collidepoint(event_pos):
@@ -715,79 +1148,128 @@ class InputField:
         else:
             if InputField.active_input == self:
                 InputField.deactivate()
+        return False
 
     @classmethod
     def check_all_collisions(cls):
+        """
+        Checks for a mouse position on top of an InputField to select that field.
+        """
         mouse_position = pygame.mouse.get_pos()
 
         for input_field in cls.active_input_fields:
             input_field.check_collision(mouse_position)
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the InputField.
+
+        Returns:
+            str: String representation of the InputField.
+        """
         return f'pos: ({self.input_rect.x}, {self.input_rect.y}) - text: {self.text_str}'
 
 
 @dataclass
 class Image:
-    assests_folder_path: ClassVar[str | None] = None
+    """
+    Sprite displays and base for objects with access to image functionality.
+
+    Attributes:
+        assets_folder_path (ClassVar[str | None]): Path to the assets' folder.
+        image (pygame.Surface): Image surface.
+        border_rect (pygame.Rect): Rectangle that acts as a border around the sprite.
+        path (str): Path to the sprite.
+        x (int): X position of the sprite top-left corner.
+        y (int): Y position of the sprite top-left corner.
+        resize_to (Sequence[int | None, int | None]): If any or both values are given, the sprite is resized to the
+            specified size. If only one of the values is given, the other is scaled to preserve the aspect ratio.
+        direct_path (bool): Ignore assets_folder_path and use the given path without changes.
+        border (int): Border size around the spirte.
+        border_color (T_COLOR): Border color.
+    """
+    assets_folder_path: ClassVar[str | None] = None
     image: pygame.Surface = field(default=None, kw_only=True)
     border_rect: Rect = field(default=None, kw_only=True)
 
-    _path: str = ''
+    path: str = ''
     x: int = 0
     y: int = 0
-    resize_to: Sequence[int, int] | None = None
+    resize_to: tuple[int | None, int | None] = (None, None)
 
-    alpha: T_COLOR | None = None
     direct_path: bool = False
 
     border: int = 0
     border_color: T_COLOR = (0, 0, 0)
 
     def __post_init__(self) -> None:
+        if Image.assets_folder_path is not None and not self.direct_path:
+            if Image.assets_folder_path[-1] != '\\':
+                self.path = Image.assets_folder_path + '\\' + self.path
+            else:
+                self.path = Image.assets_folder_path + self.path
+
         self.image = pygame.image.load(self.path)
 
-        if self.resize_to is not None:
+        if self.resize_to is not (None, None):
             self.resize(self.resize_to)
 
         self.set_border()
 
     @property
     def width(self) -> int:
+        """
+        Returns the width of the sprite.
+
+        Returns:
+            int: Width of the sprite.
+        """
         if self.image is not None:
             return self.image.get_width()
+        return 0
 
     @width.setter
-    def width(self, value) -> None:
+    def width(self, value: object) -> None:
         if isinstance(value, int) and self.image is not None:
             self.image.width = value
 
     @property
     def height(self) -> int:
+        """
+        Returns the height of the sprite.
+
+        Returns:
+            int: Height of the sprite.
+        """
         if self.image is not None:
             return self.image.get_height()
+        return 0
 
     @height.setter
-    def height(self, value) -> None:
+    def height(self, value: object) -> None:
         if isinstance(value, int) and self.image is not None:
             self.image.height = value
 
-    @property
-    def path(self) -> str:
-        if Image.assests_folder_path is not None and not self.direct_path:
-            if Image.assests_folder_path[-1] != '\\':
-                return Image.assests_folder_path + '\\' + self._path
-            else:
-                return Image.assests_folder_path + self._path
-        else:
-            return self._path
+    def set_border(self, border_size: int = None, border_color: T_COLOR = None) -> None:
+        """
+        Sets the border of the sprite.
+        """
+        if border_size is not None:
+            self.border = border_size
+        if border_color is not None:
+            self.border_color = border_color
 
-    def set_border(self) -> None:
         if self.border > 0:
             self.border_rect = Rect(self.x - self.border, self.y - self.border, self.width + 2 * self.border,
                                     self.height + 2 * self.border, color=self.border_color, border=self.border)
 
-    def resize(self, size: Sequence[int | None, int | None] | None = None) -> None:
+    def resize(self, size: tuple[int | None, int | None] = None) -> None:
+        """
+        Resizes the sprite to the given size. If only one size is given, it scales to keep the aspect ratio the same.
+
+        Args:
+            size (Sequence[int | None, int | None]): New size of the sprite.
+        """
         size = size if size is not None else self.resize
 
         if None not in size:
@@ -803,6 +1285,12 @@ class Image:
         self.set_border()
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Image.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -812,115 +1300,165 @@ class Image:
             self.border_rect.render(display)
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the Image.
+
+        Returns:
+            str: String representation of the Image.
+        """
         return f'pos: ({self.x}, {self.y}) - src: {self.path}'
 
 
 class ObjectAnimation:
+    """
+    Saves animations and links them to Objects to be used later.
+
+    Attributes:
+        running_animations (ClassVar[MutableSequence['ObjectAnimation' | None]]): List of running animations.
+        action_sequence (MutableSequence[Sequence[int, dict[str, int]]]): A sequence of Actions.
+        animation_objects (Sequence[DisplayObject]): A sequence of DisplayObjects to perform the actions on.
+        started_move (bool): Indicates if animation is active.
+        action_index (int): Index of the Action to perform.
+        object_index (int): Index of the object to perform the Action on.
+        start_action_frame (int): Frame number on which the Action started.
+        next_frame (int): Frame number on which the Action should move to the next animation step.
+        stop_reset (bool): Used to indicate if the ObjectAnimation should reset to the starting position after being
+            done.
+    """
     @dataclass
     class Action:
-        display_fps: ClassVar[int] = Display.fps if Display.fps is not None else 60
+        """
+        Saves actions to perform during an animation.
 
-        SCALE: int = 0
-        SCALE_TO: int = 1
-        MOVE: int = 2
-        MOVE_TO: int = 3
-        CHANGE_CORNER_RADIUS: int = 4
-        CHANGE_CORNER_RADIUS_TO: int = 5
-        SET_COLOR_TO: int = 6
-        CHANGE_BORDER_WIDTH_TO: int = 7
+        Attributes:
+            SCALE (ClassVar[int]): Constant set to 0.
+            SCALE_TO (ClassVar[int]): Constant set to 1.
+            MOVE (ClassVar[int]): Constant set to 2.
+            MOVE_TO (ClassVar[int]): Constant set to 3.
+            CHANGE_CORNER_RADIUS (ClassVar[int]): Constant set to 4.
+            CHANGE_CORNER_RADIUS_TO (ClassVar[int]): Constant set to 5.
+            SET_COLOR_TO (ClassVar[int]): Constant set to 6.
+            CHANGE_BORDER_WIDTH_TO (ClassVar[int]): Constant set to 7.
+        """
+        _display_fps: ClassVar[int] = Display.fps if Display.fps is not None else 60
+
+        SCALE: ClassVar[int] = 0
+        SCALE_TO: ClassVar[int] = 1
+        MOVE: ClassVar[int] = 2
+        MOVE_TO: ClassVar[int] = 3
+        CHANGE_CORNER_RADIUS: ClassVar[int] = 4
+        CHANGE_CORNER_RADIUS_TO: ClassVar[int] = 5
+        SET_COLOR_TO: ClassVar[int] = 6
+        CHANGE_BORDER_WIDTH_TO: ClassVar[int] = 7
+
+        def __init__(self, indicator: int, changes: dict[str, int | T_COLOR]):
+            self.indicator = indicator
+            self.changes = changes
 
         @classmethod
-        def execute(cls, objects, cur_object_index, start_action_time, action: int = None, **kwargs):
+        def execute(cls, objects: Sequence, cur_object_index: int, start_action_time: int,
+                    action: ObjectAnimation.Action) -> tuple[int, int | None]:
+            """
+            Executes an Action.
+
+            Args:
+                objects (Sequence): The objects to perform the Action on.
+                cur_object_index (int): Index of the current object to perform the Action on.
+                start_action_time (int): Frame at which the Action started.
+                action (ObjectAnimation.Action): Action to perform.
+            """
             wait_time = 0
             object_index = None
             cur_object = objects[cur_object_index]
 
-            if action is None:
+            if action.indicator is None:
                 return wait_time, object_index
 
-            if 'time' in kwargs.keys():
-                if action in (cls.SCALE_TO, cls.MOVE_TO, cls.CHANGE_CORNER_RADIUS_TO, cls.CHANGE_BORDER_WIDTH_TO):
-                    wait_time = start_action_time - Frame.get() + kwargs['time']
+            if 'time' in action.changes.keys():
+                if action.indicator in (cls.SCALE_TO, cls.MOVE_TO, cls.CHANGE_CORNER_RADIUS_TO,
+                                        cls.CHANGE_BORDER_WIDTH_TO):
+                    wait_time = start_action_time - Frame.get() + action.changes['time']
                 else:
-                    wait_time = kwargs['time']
+                    wait_time = action.changes['time']
                 transform_factor = 1 / max(wait_time, 1)
             else:
                 transform_factor = 1
 
             try:
-                match action:
+                # noinspection PyUnreachableCode
+                match action.indicator:
                     case cls.SCALE:
-                        if 'width' in kwargs.keys():
-                            step_size = int(kwargs['width'] * transform_factor)
+                        if 'width' in action.changes.keys():
+                            step_size = int(action.changes['width'] * transform_factor)
                             cur_object.width += step_size
-                        if 'height' in kwargs.keys():
-                            step_size = int(kwargs['height'] * transform_factor)
+                        if 'height' in action.changes.keys():
+                            step_size = int(action.changes['height'] * transform_factor)
                             cur_object.height += step_size
 
-                        if 'width' not in kwargs.keys() and 'height' not in kwargs.keys():
+                        if 'width' not in action.changes.keys() and 'height' not in action.changes.keys():
                             raise KeyError('width and/or height key should be given to use SCALE action')
 
                     case cls.SCALE_TO:
-                        if 'width' in kwargs.keys():
-                            delta_w = kwargs['width'] - cur_object.width
+                        if 'width' in action.changes.keys():
+                            delta_w = action.changes['width'] - cur_object.width
                             step_size = int(delta_w * transform_factor)
                             cur_object.width += step_size
-                        if 'height' in kwargs.keys():
-                            delta_h = kwargs['height'] - cur_object.height
+                        if 'height' in action.changes.keys():
+                            delta_h = action.changes['height'] - cur_object.height
                             step_size = int(delta_h * transform_factor)
                             cur_object.height += step_size
 
-                        if 'width' not in kwargs.keys() and 'height' not in kwargs.keys():
+                        if 'width' not in action.changes.keys() and 'height' not in action.changes.keys():
                             raise KeyError('width and/or height key should be given to use SCALE_TO action')
 
                     case cls.MOVE:
-                        if 'x' in kwargs.keys():
-                            step_size = int(kwargs['x'] * transform_factor)
+                        if 'x' in action.changes.keys():
+                            step_size = int(action.changes['x'] * transform_factor)
                             cur_object.x += step_size
-                        if 'y' in kwargs.keys():
-                            step_size = int(kwargs['y'] * transform_factor)
+                        if 'y' in action.changes.keys():
+                            step_size = int(action.changes['y'] * transform_factor)
                             cur_object.y += step_size
 
-                        if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
+                        if 'x' not in action.changes.keys() and 'y' not in action.changes.keys():
                             raise KeyError('x and/or y key should be given to use MOVE action')
 
                     case cls.MOVE_TO:
-                        if 'x' in kwargs.keys():
-                            delta_x = kwargs['x'] - cur_object.x
+                        if 'x' in action.changes.keys():
+                            delta_x = action.changes['x'] - cur_object.x
                             step_size = int(delta_x * transform_factor)
                             cur_object.x += step_size
-                        if 'y' in kwargs.keys():
-                            delta_y = kwargs['y'] - cur_object.y
+                        if 'y' in action.changes.keys():
+                            delta_y = action.changes['y'] - cur_object.y
                             step_size = int(delta_y * transform_factor)
                             cur_object.y += step_size
 
-                        if 'x' not in kwargs.keys() and 'y' not in kwargs.keys():
+                        if 'x' not in action.changes.keys() and 'y' not in action.changes.keys():
                             raise KeyError('x and/or y key should be given to use MOVE_TO action')
 
                     case cls.CHANGE_CORNER_RADIUS:
-                        if 'radius' in kwargs.keys():
-                            step_size = int(kwargs['radius'] * transform_factor)
+                        if 'radius' in action.changes.keys():
+                            step_size = int(action.changes['radius'] * transform_factor)
                             cur_object.corner_radius_all += step_size
                         else:
                             raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS action')
 
                     case cls.CHANGE_CORNER_RADIUS_TO:
-                        if 'radius' in kwargs.keys():
-                            delta_r = kwargs['radius'] - cur_object.corner_radius_all
+                        if 'radius' in action.changes.keys():
+                            delta_r = action.changes['radius'] - cur_object.corner_radius_all
                             step_size = int(delta_r * transform_factor)
                             cur_object.corner_radius_all += step_size
                         else:
                             raise KeyError('radius key should be given to use CHANGE_CORNER_RADIUS_TO action')
 
                     case cls.SET_COLOR_TO:
-                        if 'color' in kwargs.keys():
-                            cur_object.color = kwargs['color']
+                        if 'color' in action.changes.keys():
+                            cur_object.color = action.changes['color']
                         else:
                             raise KeyError('color key should be given to use SET_COLOR_TO action')
 
                     case cls.CHANGE_BORDER_WIDTH_TO:
-                        if 'border' in kwargs.keys():
-                            delta_b = kwargs['border'] - cur_object.border
+                        if 'border' in action.changes.keys():
+                            delta_b = action.changes['border'] - cur_object.border
                             step_size = int(delta_b * transform_factor)
                             cur_object.border += step_size
                         else:
@@ -934,10 +1472,10 @@ class ObjectAnimation:
 
             return wait_time, object_index
 
-    running_animations: MutableSequence = []
+    running_animations: ClassVar[MutableSequence[ObjectAnimation | None]] = []
 
-    def __init__(self, action_sequence: MutableSequence[Sequence[int, dict[str, int]]],
-                 animation_objects: Sequence, stop_reset: bool = True):
+    def __init__(self, action_sequence: MutableSequence[Action],
+                 animation_objects: tuple[DisplayObject, ...], stop_reset: bool = True):
         self.action_sequence = action_sequence
         self.animation_objects = animation_objects
         self._start_object_setting = animation_objects[:]
@@ -949,6 +1487,9 @@ class ObjectAnimation:
         self.stop_reset = stop_reset
 
     def start(self):
+        """
+        Start the ObjectAnimation.
+        """
         if self not in ObjectAnimation.running_animations:
             self.start_action_frame = Frame.get()
             ObjectAnimation.running_animations.append(self)
@@ -956,6 +1497,9 @@ class ObjectAnimation:
             print('Animation already running')
 
     def stop(self):
+        """
+        Stop the ObjectAnimation and reset the ObjectAnimation if 'stop_reset' is True.
+        """
         if self in ObjectAnimation.running_animations:
             ObjectAnimation.running_animations[ObjectAnimation.running_animations.index(self)] = None
 
@@ -963,6 +1507,9 @@ class ObjectAnimation:
             self.reset()
 
     def reset(self):
+        """
+        Reset the ObjectAnimation to the starting position.
+        """
         if not self.stop_reset:
             self.stop()
         else:
@@ -973,17 +1520,29 @@ class ObjectAnimation:
         self.start_action_frame = 0
         self.next_frame = 0
         self.started_move = False
-        self.animation_objects = self._start_object_setting.copy()
+        self.animation_objects = self._start_object_setting
 
-    def render(self):
+    def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the ObjectsAnimation.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
+        display = display if display is not None else Display.window()
+        if display is None:
+            raise ValueError('Display argument missing')
+
         self.animation_objects[self.object_index].render()
 
     def process_animation(self):
+        """
+        Processes the Animation object and performs Actions.
+        """
         current_action = self.action_sequence[self.action_index]
 
         wait_time, object_index = ObjectAnimation.Action.execute(self.animation_objects, self.object_index,
-                                                                 self.start_action_frame, current_action[0],
-                                                                 **current_action[1])
+                                                                 self.start_action_frame, current_action)
 
         if object_index is not None:
             self.object_index = object_index
@@ -1006,6 +1565,9 @@ class ObjectAnimation:
 
     @classmethod
     def update_animations(cls):
+        """
+        Processes all the active ObjectAnimations.
+        """
         for animation in cls.running_animations:
             if animation is not None:
                 animation.process_animation()
@@ -1015,16 +1577,36 @@ class ObjectAnimation:
 
 @dataclass
 class Button:
-    BUTTON_TYPES: ClassVar[tuple[str, ...]] = ('switch', 'push')
+    """
+    Creates buttons to detect and save onclick behavior.
 
-    active_buttons: ClassVar[list] = []
+    Attributes:
+        active_buttons (ClassVar[list[Button]]): List of active Buttons.
+        rect (tuple[int, int, int, int, T_COLOR] | Rect): Button shape and hitbox.
+        pressed_color (T_COLOR | None): Color of the Button when pressed, if None there is no color change.
+        unpressed_color (T_COLOR): Color of the Button when unpressed.
+        text (Text | None): Button text.
+        fit_text (bool): Used to overwrite automatic text fit to the Button size.
+        img (Image | None): Image to display within the Button.
+        img_margin (int): Margin between the Image and Button edges.
+        img_fill_button (bool): Determines if the Image should resize to fill the entire Button shape.
+        img_alignment (int): Use Placement to align the image within the Button.
+        pressed (bool): Boolean to set the pressed state on initialization.
+        button_type (str): Classifies the Button as a 'switch' or 'push' button. Switch buttons switch state when
+            pressed, push buttons are unpressed automatically directly after being pressed.
+        target_scene_on_press (str | None): Switch to a given Scene when the Button is pressed.
+        call_on_press (Callable | list[Callable]): Call all the given Callables upon the Button being pressed.
+        call_on_press_kwargs (dict | list[dict]): Save Callable kwargs for the call_on_press Callables. These are
+            automatically used when executing the call_on_press Callables.
+    """
+    _BUTTON_TYPES: ClassVar[tuple[str, ...]] = ('switch', 'push')
 
-    _text: Text = field(default=None, kw_only=True)
+    active_buttons: ClassVar[list[Button]] = []
 
-    rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
+    rect: tuple[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
     pressed_color: T_COLOR | None = None
 
-    text_obj: Text | None = None
+    text: Text | None = None
     fit_text: bool = True
 
     img: Image | None = None
@@ -1035,15 +1617,15 @@ class Button:
     pressed: bool = False
     button_type: str = 'switch'
     target_scene_on_press: str | None = None
-    call_on_press: Callable | list[Callable] or None = None
+    call_on_press: Callable | list[Callable] | None = None
     call_on_press_kwargs: dict | list[dict] | None = None
 
     def __post_init__(self) -> None:
         if isinstance(self.rect, Sequence):
             self.rect = Rect(*self.rect[:4], color=self.rect[4])
 
-        self.not_pressed_color = self.rect.color
-        if self.pressed_color is not None:
+        self.unpressed_color = self.rect.color
+        if self.pressed_color is not None and self.pressed:
             self.rect.color = self.pressed_color
 
         if self.fit_text and self.text is not None:
@@ -1077,27 +1659,32 @@ class Button:
 
     @property
     def text_str(self) -> str:
-        return self._text.text
+        """
+        Returns the text of the Button.
+
+        Returns:
+            str: The text of the Button.
+        """
+        return self.text.text
 
     @text_str.setter
     def text_str(self, value) -> None:
         if isinstance(value, str):
-            self._text.text = value
-        else:
-            raise NotImplemented
-
-    @property
-    def text(self) -> Text:
-        return self._text
-
-    @text.setter
-    def text(self, value) -> None:
-        if isinstance(value, Text):
-            self._text = value
+            self.text.text = value
         else:
             raise NotImplemented
 
     def call_func(self, kwargs_list: list[dict] = None, **kwargs) -> None:
+        """
+        Call all associated functions upon the Button being pressed.
+
+        Args:
+            kwargs_list (list[dict] | None): List of keyword arguments to overwrite the defaulted keyword arguments
+                within 'call_on_press_kwargs', used when keywords need to be overwritten and multiple 'call_on_press'
+                Callables are saved.
+            **kwargs (dict): Additional keyword arguments to overwrite the defaulted keyword arguments, used when only
+                one 'call_on_press' Callable is saved.
+        """
         if self.call_on_press is not None:
             if isinstance(self.call_on_press, Callable):
                 call_kwargs = {} if self.call_on_press_kwargs is None else self.call_on_press_kwargs
@@ -1117,6 +1704,12 @@ class Button:
                         func(**callable_kwargs)
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Button.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -1129,6 +1722,21 @@ class Button:
 
     def check_collision(self, event_pos: tuple[int, int] | None = None, kwargs_list: list[dict] = None,
                         **func_kwargs) -> bool:
+        """
+        Checks collision for a position and executes all actions when pressed.
+
+        Args:
+            event_pos (tuple[int, int] | None): Position to check for collision, if None the position of the mouse is
+                used.
+            kwargs_list (list[dict] | None): List of keyword arguments to overwrite the defaulted keyword arguments
+                within 'call_on_press_kwargs', used when keywords need to be overwritten and multiple 'call_on_press'
+                Callables are saved.
+            **func_kwargs (dict): Additional keyword arguments to overwrite the defaulted keyword arguments, used when
+                only one 'call_on_press' Callable is saved.
+
+        Returns:
+            bool: True if collision was found, False otherwise.
+        """
         event_pos = pygame.mouse.get_pos() if event_pos is None else event_pos
 
         if self.rect.rect.collidepoint(event_pos):
@@ -1146,7 +1754,10 @@ class Button:
         return False
 
     @classmethod
-    def check_all_collisions(cls):
+    def check_all_collisions(cls) -> None:
+        """
+        Checks collisions for all active buttons using the mouse position.
+        """
         mouse_position = pygame.mouse.get_pos()
 
         for button in cls.active_buttons:
@@ -1154,29 +1765,56 @@ class Button:
 
     @classmethod
     def release_push_buttons(cls) -> None:
+        """
+        Function used to unpress all Buttons classified as a 'push' Button.
+        """
         for button in cls.active_buttons:
             if button.button_type == 'push' and button.pressed is True:
                 button.pressed = False
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the Button.
+
+        Returns:
+            str: String representation of the Button.
+        """
         return f'Button: ({self.rect.x}, {self.rect.y}) - target: {self.target_scene_on_press}'
 
 
 @dataclass
 class Bar:
-    display_fps: ClassVar[int] = Display.fps if Display.fps is not None else 60
-    moving_bars: ClassVar[list] = []
-    active_bars: ClassVar[list] = []
+    """
+    Creates a bar that can display a value compared to a maximum.
 
-    rect: Sequence[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
+    Attributes:
+        active_bars (ClassVar[list[Bar]]): List of active bars.
+        rect (tuple[int, int, int, int, T_COLOR] | Rect): Containment rectangle for the bounds of the Bar.
+        max_value_range (list[float]): List containing the minimum and maximum values of the Bar.
+        bar_border_width (int): Border around the Bar rect.
+        bar_color (T_COLOR): Color of the Bar.
+        text (Text): Text object for information about the Bar.
+        fit_text (bool): Used to overwrite automatic text fit to the Bar size.
+        bar_bg_img (Image): Image used for the Bar background.
+        bar_closed (bool): Close of bar inside using a line with the same width as the 'bar_border_width'.
+        allow_inverse (bool): Allows the bottom value to rise above the upper value and the other way around.
+        bar_inverse_color (T_COLOR): Color of the Bar when the bottom value is above the upper value.
+        start_fill_side (int): Sets the side of the bar which is considered the bottom.
+        bar_speed (float): Speed with which the Bar moves to its target values.
+    """
+    _display_fps: ClassVar[int] = Display.fps if Display.fps is not None else 60
+    _moving_bars: ClassVar[list[Bar]] = []
+    active_bars: ClassVar[list[Bar]] = []
+
+    rect: tuple[int, int, int, int, T_COLOR] | Rect = (0, 0, 0, 0, (0, 0, 0))
     max_value_range: list[float] | None = None
-    goal_value_range: list[float] | None = field(default=None, kw_only=True)
-    display_range: list[float] | None = field(default=None, kw_only=True)
+    _goal_value_range: list[float] | None = field(default=None, kw_only=True)
+    _display_range: list[float] | None = field(default=None, kw_only=True)
 
     bar_border_width: int = 2
 
     bar_color: T_COLOR = None
-    _text: Text | None = None
+    text: Text | None = None
     fit_text: bool = True
     bar_bg_img: Image | None = None
 
@@ -1187,7 +1825,7 @@ class Bar:
 
     start_fill_side: int = Placement.LEFT
     bar_speed: float = 3.0
-    starting_frame: int = Frame.get()
+    _starting_frame: int = Frame.get()
 
     def __post_init__(self) -> None:
         Bar.active_bars.append(self)
@@ -1201,11 +1839,12 @@ class Bar:
                 self.bar_border_width = self.rect.border
 
         if self.bar_color is None:
+            # noinspection PyTypeChecker
             self.bar_color = tuple(255 - self.rect.color[c] for c in self.rect.color)
 
         self.max_value_range = [0.0, 100.0] if self.max_value_range is None else self.max_value_range
-        self.goal_value_range = self.max_value_range[:]
-        self.display_range = self.max_value_range[:]
+        self._goal_value_range = self.max_value_range[:]
+        self._display_range = self.max_value_range[:]
 
         if self.start_fill_side not in (Placement.LEFT, Placement.BOTTOM):
             self.start_fill_side = Placement.LEFT
@@ -1225,80 +1864,118 @@ class Bar:
 
     @property
     def text_str(self) -> str:
-        return self._text.text
+        """
+        Returns the text of the Button.
+
+        Returns:
+            str: The text of the Button.
+        """
+        return self.text.text
 
     @text_str.setter
     def text_str(self, value: object) -> None:
         if isinstance(value, str):
-            self._text.text = value
-        else:
-            raise NotImplemented
-
-    @property
-    def text(self) -> Text:
-        return self._text
-
-    @text.setter
-    def text(self, value: object) -> None:
-        if isinstance(value, Text):
-            self._text = value
+            self.text.text = value
         else:
             raise NotImplemented
 
     @property
     def percentage(self) -> tuple[float, ...]:
-        return tuple(round(self.goal_value_range[i] / self.max_value_range[1] * 100, 1) for i in range(2))
+        """
+        Returns the percentages of the Bar's current value for the upper and lower values.
+        """
+        return tuple(round(self._goal_value_range[i] / self.max_value_range[1] * 100, 1) for i in range(2))
 
     def set_value(self, value: float, set_bottom: bool = False) -> None:
+        """
+        Sets the Bar to a new value.
+
+        Args:
+            value (float): New value for the Bar.
+            set_bottom (bool): Set the new value to the bottom of the Bar instead of the top.
+        """
         if self.allow_inverse:
             set_value = min(max(value, self.max_value_range[0]), self.max_value_range[1])
         else:
             if not set_bottom:
-                set_value = min(max(value, self.goal_value_range[0]), self.max_value_range[1])
+                set_value = min(max(value, self._goal_value_range[0]), self.max_value_range[1])
             else:
-                set_value = min(max(value, self.max_value_range[0]), self.goal_value_range[1])
+                set_value = min(max(value, self.max_value_range[0]), self._goal_value_range[1])
 
         target_index = 1 if not set_bottom else 0
 
-        self.goal_value_range[target_index] = set_value
+        self._goal_value_range[target_index] = set_value
 
-        if self not in Bar.moving_bars:
-            Bar.moving_bars.append(self)
+        if self not in Bar._moving_bars:
+            Bar._moving_bars.append(self)
 
     def modify_value(self, value: float, set_bottom: bool = False) -> None:
+        """
+        Increase the Bar's current value by the given value.
+
+        Args:
+            value (float): Value that should be added to the current value of the Bar.
+            set_bottom (bool): Set the new value to the bottom of the Bar instead of the top.
+        """
         target_index = 1 if not set_bottom else 0
-        self.set_value(self.goal_value_range[target_index] + value, set_bottom)
+        self.set_value(self._goal_value_range[target_index] + value, set_bottom)
 
     def set_percentage(self, percentage: float, set_bottom: bool = False) -> None:
+        """
+        Sets the Bar to a new percentage value.
+
+        Args:
+            percentage (float): New percentage value for the Bar.
+            set_bottom (bool): Set the new value to the bottom of the Bar instead of the top.
+        """
         value_for_percent = percentage / 100 * self.max_value_range[1]
         self.set_value(value_for_percent, set_bottom)
 
     def modify_percentage(self, percentage: float, set_bottom: bool = False) -> None:
+        """
+        Increase the Bar's current value by the given percantage value.
+
+        Args:
+            percentage (float): Percentage value that should be added to the current value of the Bar.
+            set_bottom (bool): Set the new value to the bottom of the Bar instead of the top.
+        """
         value_for_percent = percentage / 100 * self.max_value_range[1]
         self.modify_value(value_for_percent, set_bottom)
 
-    def get_bar_width(self, value: float) -> int:
+    def _get_bar_width(self, value: float) -> int:
         bg_width = self.rect.width - 2 * self.bar_border_width
         ratio_filled = value / self.max_value_range[1]
         return round(bg_width * ratio_filled)
 
-    def get_bar_height(self, value: float) -> int:
+    def _get_bar_height(self, value: float) -> int:
         bg_height = self.rect.height - 2 * self.bar_border_width
         ratio_filled = value / self.max_value_range[1]
         return round(bg_height * ratio_filled)
 
     def get_bar_size(self) -> tuple[int, int]:
-        bar_min = min(self.display_range)
-        bar_max = max(self.display_range)
+        """
+        Returns the size of the Bar rect.
+
+        Returns:
+            tuple[int, int]: The size of the Bar rect.
+        """
+        bar_min = min(self._display_range)
+        bar_max = max(self._display_range)
 
         if self.start_fill_side == Placement.LEFT:
-            return (self.get_bar_width(bar_max) - self.get_bar_width(bar_min),
+            return (self._get_bar_width(bar_max) - self._get_bar_width(bar_min),
                     self.rect.height - 2 * self.bar_border_width)
         else:
             return (self.rect.width - 2 * self.bar_border_width,
-                    self.get_bar_height(bar_max) - self.get_bar_height(bar_min))
+                    self._get_bar_height(bar_max) - self._get_bar_height(bar_min))
 
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the Bar.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
@@ -1307,19 +1984,19 @@ class Bar:
         self.rect.render(display)
 
         if self.start_fill_side == Placement.LEFT:
-            bar_x = self.rect.x + self.bar_border_width + self.get_bar_width(min(self.display_range))
+            bar_x = self.rect.x + self.bar_border_width + self._get_bar_width(min(self._display_range))
             bar_y = self.rect.y + self.bar_border_width
         else:
             bar_x = self.rect.x + self.bar_border_width
-            bar_y = self.rect.y + self.bar_border_width + self.get_bar_height(self.max_value_range[1] -
-                                                                              max(self.display_range))
+            bar_y = self.rect.y + self.bar_border_width + self._get_bar_height(self.max_value_range[1] -
+                                                                               max(self._display_range))
         bar_size = self.get_bar_size()
 
         if self.bar_bg_img is not None:
             self.bar_bg_img.render(display)
 
         color = self.bar_color
-        if self.display_range[0] > self.display_range[1] and self.bar_inverse_color is not None:
+        if self._display_range[0] > self._display_range[1] and self.bar_inverse_color is not None:
             color = self.bar_inverse_color
 
         if self.rect.corner_radius_all != 0 or self.rect.corner_radius_specific is not None:
@@ -1354,7 +2031,6 @@ class Bar:
                 bar_rect_surface.blit(corner_rect_cuts, (self.rect.x - bar_x + self.bar_border_width, 0))
             elif self.start_fill_side == Placement.BOTTOM:
                 bar_rect_surface.blit(corner_rect_cuts, (0, self.rect.y - bar_y + self.bar_border_width))
-            # bar_rect_surface.convert_alpha()
 
             bar_display = bar_rect_surface
 
@@ -1366,7 +2042,7 @@ class Bar:
                 stop_width = self.rect.width - 2 * self.bar_border_width
                 stop_height = self.bar_border_width
 
-            if self.max_value_range[0] <= self.display_range[1] < self.max_value_range[1]:
+            if self.max_value_range[0] <= self._display_range[1] < self.max_value_range[1]:
                 if self.start_fill_side == Placement.LEFT:
                     max_stop_block = Rect(bar_x + bar_size[0], bar_y, stop_width, stop_height,
                                           color=self.rect.color)
@@ -1376,7 +2052,7 @@ class Bar:
 
                 max_stop_block.render(bar_display)
 
-            if self.max_value_range[0] < self.display_range[0] <= self.max_value_range[1]:
+            if self.max_value_range[0] < self._display_range[0] <= self.max_value_range[1]:
                 if self.start_fill_side == Placement.LEFT:
                     max_stop_block = Rect(bar_x - self.bar_border_width, self.rect.y + self.bar_border_width,
                                           stop_width, stop_height, color=self.rect.color)
@@ -1388,10 +2064,7 @@ class Bar:
                 max_stop_block.render(bar_display)
 
         if self.rect.corner_radius_all != 0 or self.rect.corner_radius_specific is not None:
-            # Displaying bar
             display.blit(bar_display, (bar_x, bar_y))
-            # display.blit(corner_rect_cuts, (self.rect.x + self.bar_border_width,
-            #                                 self.rect.y + self.bar_border_width))
         else:
             bar_rect = Rect(bar_x, bar_y, bar_size[0], bar_size[1], color=color)
             bar_rect.render(display)
@@ -1400,31 +2073,52 @@ class Bar:
             self.text.render(display)
 
     def process_bar_movement(self) -> None:
+        """
+        Process Bar movents towards their target values using the set speed.
+        """
         for side in range(2):
-            if self.display_range[side] != self.goal_value_range[side]:
-                delta_value = self.goal_value_range[side] - self.display_range[side]
-                move_level = self.bar_speed * delta_value / self.display_fps
+            if self._display_range[side] != self._goal_value_range[side]:
+                delta_value = self._goal_value_range[side] - self._display_range[side]
+                move_level = self.bar_speed * delta_value / self._display_fps
                 move_level = int(move_level if move_level % 1 == 0 else move_level + (1 if delta_value > 0 else -1))
 
-                self.display_range[side] = min(max(self.display_range[side] + move_level,
-                                                   self.max_value_range[0]), self.max_value_range[1])
+                self._display_range[side] = min(max(self._display_range[side] + move_level,
+                                                    self.max_value_range[0]), self.max_value_range[1])
 
-        if self.display_range == self.goal_value_range and self in Bar.moving_bars:
-            Bar.moving_bars.remove(self)
+        if self._display_range == self._goal_value_range and self in Bar._moving_bars:
+            Bar._moving_bars.remove(self)
 
     @classmethod
     def process_all_bar_movement(cls) -> None:
-        for bar in cls.moving_bars:
+        """
+        Process the movement of all active Bars.
+        """
+        for bar in cls._moving_bars:
             bar.process_bar_movement()
 
 
 class Scene:
-    active_scenes: MutableSequence | None = []
-    all_scenes: MutableSequence | None = []
-    universal_objects: list | None = []
+    """
+    Scenes can be used to group large amounts of DisplayObjects, and be able to change which are visible and which ones
+        are not.
 
-    def __init__(self, name: str | None = None, bg_color: T_COLOR | None = (0, 0, 0),
-                 objects: Iterable | MutableMapping | None = None) -> None:
+    Attributes:
+        active_scenes (ClassVar[list[Scene]]): List containing all Scenes which are visible.
+        all_scenes (ClassVar[list[Scene]]): List containing all Scenes.
+        universal_objects (ClassVar[list[DisplayObject]]): List containing DisplayObjects which should always be
+            displayed.
+        name (str): Name of the Scene.
+        bg_color (T_COLOR): Background color used when displaying the Scene.
+        objects (Iterable[DisplayObject | Callable] | MutableMapping[str, DisplayObject | Callable]): Objects to display
+            and functions to call when the Scene is active.
+    """
+    active_scenes: ClassVar[list[Scene] | None] = []
+    all_scenes: ClassVar[list[Scene] | None] = []
+    universal_objects: ClassVar[list[DisplayObject] | None] = []
+
+    def __init__(self, name: str | None = None, bg_color: T_COLOR = (0, 0, 0),
+                 objects: Iterable[DisplayObject | Callable] | MutableMapping[str, DisplayObject | Callable] | None =
+                 None) -> None:
         if name in [scene.name for scene in Scene.all_scenes]:
             raise ValueError('name already taken')
         else:
@@ -1435,54 +2129,107 @@ class Scene:
 
     @property
     def objects_list(self) -> list:
+        """
+        All DisplayObjects within the Scene.
+
+        Returns:
+            list: All DisplayObjects within the Scene.
+        """
         if isinstance(self.objects, Mapping):
             objects_list = self.objects.values()
         elif isinstance(self.objects, Iterable):
             objects_list = self.objects
         else:
             return NotImplemented
-        return list(objects_list)
+        return [obj for obj in objects_list if isinstance(obj, DisplayObject)]
 
     def activate(self, deactivate_all: bool = True) -> None:
+        """
+        Activate the Scene.
+
+        Args:
+            deactivate_all (bool): Deactivates all active Scenes when True.
+        """
         if deactivate_all:
             Scene.active_scenes = [self]
         else:
             Scene.active_scenes.insert(-1, self)
 
     def deactivate(self, deactivate_all: bool = False) -> None:
+        """
+        Deactivate the Scene.
+
+        Args:
+            deactivate_all (bool): Deactivates all active Scenes when True.
+        """
         if deactivate_all:
             Scene.active_scenes = []
         else:
             if self in Scene.active_scenes:
                 Scene.active_scenes.remove(self)
 
+    def detect_object(self, obj: DisplayObject) -> bool:
+        """
+        Checks if a given object is saves within the Scene.
+
+        Args:
+            obj (DisplayObject): The object to check.
+
+        Returns:
+            bool: True if the object is saved within the Scene, False otherwise.
+        """
+        return obj in self.objects_list
+
+    def detect_object_key(self, key: Hashable) -> bool:
+        """
+        Checks if an object is saved in the Scene using the given key.
+
+        Args:
+            key (Hashable): The key to check.
+
+        Returns:
+            bool: True if the object is saved in the Scene using the given key. False otherwise.
+        """
+        if isinstance(self.objects, Mapping):
+            return key in self.objects.keys()
+        else:
+            return NotImplemented
+
     def render(self, display: pygame.Surface | None = None) -> None:
+        """
+        Renders the all objects within the Scene and calls all functions.
+
+        Args:
+            display (pygame.Surface | None): Display surface, automatically uses the Display object if one is defined.
+        """
         display = display if display is not None else Display.window()
         if display is None:
             raise ValueError('Display argument missing')
 
-        if self.bg_color is not None:
-            display.fill(self.bg_color)
+        display.fill(self.bg_color)
 
         render_objects = self.objects_list + Scene.universal_objects
 
         for obj in render_objects:
             if isinstance(obj, DisplayObject):
                 obj.render(display)
+            elif isinstance(obj, Callable):
+                obj(display)
             else:
                 raise NotImplementedError('Cannot render objects which are not DisplayObject')
 
-    def detect_object(self, obj: object) -> bool:
-        return obj in self.objects_list
-
-    def detect_object_key(self, obj: Hashable) -> bool:
-        if isinstance(self.objects, Mapping):
-            return obj in self.objects.keys()
-        else:
-            return NotImplemented
-
     @classmethod
-    def find_scene(cls, name: str) -> 'Scene':
+    def find_scene(cls, name: str) -> Scene | None:
+        """
+        Find a Scene with the given name.
+
+        Args:
+            name (str): Name of the Scene.
+
+        Returns:
+            Scene | None: Scene with the given name, if no Scene is found, then None.
+        """
         for scene in cls.all_scenes:
             if name == scene.name:
                 return scene
+        return None

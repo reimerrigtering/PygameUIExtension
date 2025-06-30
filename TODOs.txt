@@ -1,5 +1,6 @@
 Category: Bar
 FIXME: Rounded corners irregular stop block movement / placement
+FIXME: Cutof line behavior is off
 
 Category: Group
 TEST: Group wide attribute changes work on all objects inside the group
@@ -8,11 +9,8 @@ Category: Scene
 TEST: Add functionality to parse display functions alongside objects
 
 Category: NEW 2.1.0
-TODO: Add docstrings
-
 TODO: ObjectAnimation Improve attribute catch return text
 TODO: Scene multiple active scenes rendering
-TODO: Allow alpha color effect to all display objects
 TODO: ObjectAnimation trace attribute
 TODO: ObjectAnimation CHANGE_OBJECT Action
 TODO: ObjectAnimation ROTATE action
